@@ -30,6 +30,11 @@ void aw::result<void>::get()
 	(void)this->result<detail::unit_t>::get();
 }
 
+std::exception_ptr aw::result<void>::exception() const
+{
+	return this->result<detail::unit_t>::exception();
+}
+
 void aw::result<void>::rethrow() const
 {
 	this->result<detail::unit_t>::rethrow();

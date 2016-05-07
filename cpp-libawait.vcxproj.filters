@@ -11,6 +11,13 @@
     <ClInclude Include="await\detail\unit.h">
       <Filter>detail</Filter>
     </ClInclude>
+    <ClInclude Include="await\task.h" />
+    <ClInclude Include="await\detail\task_impl.h">
+      <Filter>detail</Filter>
+    </ClInclude>
+    <ClInclude Include="await\detail\task_access.h">
+      <Filter>detail</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="detail">

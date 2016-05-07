@@ -1,5 +1,5 @@
-#ifndef AWAIT_TASK_H
-#define AWAIT_TASK_H
+#ifndef AWAIT_RESULT_H
+#define AWAIT_RESULT_H
 
 #include "detail/unit.h"
 #include <type_traits>
@@ -26,6 +26,7 @@ public:
 	bool has_exception() const;
 	T & get();
 	T const & get() const;
+	std::exception_ptr exception() const;
 	void rethrow() const;
 
 	template <typename U>
@@ -53,6 +54,7 @@ struct result<void>
 	bool has_value() const;
 	bool has_exception() const;
 	void get();
+	std::exception_ptr exception() const;
 	void rethrow() const;
 
 	static result<void> from_value();

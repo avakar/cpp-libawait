@@ -118,6 +118,14 @@ T const & aw::result<T>::get() const
 }
 
 template <typename T>
+std::exception_ptr aw::result<T>::exception() const
+{
+	if (m_kind != kind_t::exception)
+		return nullptr;
+	return reinterpret_cast<std::exception_ptr const &>(m_storage);
+}
+
+template <typename T>
 void aw::result<T>::rethrow() const
 {
 	if (m_kind == kind_t::exception)

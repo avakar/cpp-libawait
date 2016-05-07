@@ -6,6 +6,7 @@ TEST("aw::result should support simple values")
 	aw::result<int> t = aw::value(42);
 	chk t.has_value();
 	chk !t.has_exception();
+	chk t.exception() == nullptr;
 	t.rethrow();
 	chk t.get() == 42;
 }
@@ -15,6 +16,7 @@ TEST("aw::result should support exceptions")
 	aw::result<int> t = std::make_exception_ptr(42);
 	chk !t.has_value();
 	chk t.has_exception();
+	chk t.exception() != nullptr;
 
 	try
 	{
@@ -40,6 +42,7 @@ TEST("aw::result<void> should support simple values")
 	aw::result<void> t = aw::value();
 	chk t.has_value();
 	chk !t.has_exception();
+	chk t.exception() == nullptr;
 	t.rethrow();
 	t.get();
 }
@@ -49,6 +52,7 @@ TEST("aw::result<void> should support exceptions")
 	aw::result<void> t = std::make_exception_ptr(42);
 	chk !t.has_value();
 	chk t.has_exception();
+	chk t.exception() != nullptr;
 
 	try
 	{
