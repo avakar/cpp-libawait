@@ -1,0 +1,8 @@
+**.sdf
+**.opensdf
+**.vcxproj.user
+Debug/
+Release/
+.vs/
+**.VC.db
+**.VC.opendb
