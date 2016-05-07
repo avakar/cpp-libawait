@@ -23,6 +23,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="await\detail\result_impl.h" />
+    <ClInclude Include="await\detail\unit.h" />
     <ClInclude Include="await\result.h" />
   </ItemGroup>
   <ItemGroup>

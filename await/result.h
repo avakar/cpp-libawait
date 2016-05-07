@@ -1,16 +1,11 @@
 #ifndef AWAIT_TASK_H
 #define AWAIT_TASK_H
 
+#include "detail/unit.h"
 #include <type_traits>
 #include <exception>
 
 namespace aw {
-
-namespace detail {
-
-struct unit_t {};
-
-}
 
 template <typename T>
 struct result
