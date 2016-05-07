@@ -18,6 +18,10 @@
     <ClInclude Include="await\detail\task_access.h">
       <Filter>detail</Filter>
     </ClInclude>
+    <ClInclude Include="await\run.h" />
+    <ClInclude Include="await\detail\run_impl.h">
+      <Filter>detail</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="detail">
@@ -26,5 +30,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="await\result.cpp" />
+    <ClCompile Include="await\task.cpp" />
+    <ClCompile Include="await\detail\run_impl.cpp">
+      <Filter>detail</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

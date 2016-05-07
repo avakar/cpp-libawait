@@ -45,7 +45,7 @@ private:
 
 template <>
 struct result<void>
-	: private result<detail::unit_t>
+	: result<detail::unit_t>
 {
 	result(result const & o);
 	result(result && o);

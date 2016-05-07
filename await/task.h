@@ -2,6 +2,7 @@
 #define AWAIT_TASK_H
 
 #include "result.h"
+#include "detail/unit.h"
 #include "detail/task_access.h"
 #include <type_traits>
 #include <exception>
@@ -28,11 +29,16 @@ private:
 	friend detail::task_access;
 };
 
-template <typename T>
-T run(task<T> && t);
+template <>
+struct task<void>
+	: task<detail::unit_t>
+{
+	task();
+	task(result<void> && v);
+	task(result<void> const & v);
 
-template <typename T>
-result<T> try_run(task<T> && t);
+	using task<detail::unit_t>::empty;
+};
 
 } // namespace aw
 
