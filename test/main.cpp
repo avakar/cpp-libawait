@@ -1,5 +1,5 @@
-int main()
-{
-    return 0;
-}
+#include <mutest/test.h>
 
+TEST("test")
+{
+}
