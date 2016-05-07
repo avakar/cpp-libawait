@@ -3,4 +3,15 @@
   <ItemGroup>
     <None Include="test\libawait-test.vcxproj" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="await\result.h" />
+    <ClInclude Include="await\detail\result_impl.h">
+      <Filter>detail</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="detail">
+      <UniqueIdentifier>{68a49b94-10b6-4bd3-9b44-ff81c8ac5e84}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
 </Project>
