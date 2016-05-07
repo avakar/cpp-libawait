@@ -6,6 +6,12 @@
 
 namespace aw {
 
+namespace detail {
+
+struct unit_t {};
+
+}
+
 template <typename T>
 struct result
 {
@@ -41,11 +47,32 @@ private:
 	friend struct result;
 };
 
+template <>
+struct result<void>
+	: private result<detail::unit_t>
+{
+	result(result const & o);
+	result(result && o);
+	result(std::exception_ptr e);
+
+	bool has_value() const;
+	bool has_exception() const;
+	void get();
+	void rethrow() const;
+
+	static result<void> from_value();
+
+private:
+	result();
+};
+
 template <typename T>
 result<T> value(T && v);
 
 template <typename T>
 result<T> value(T const & v);
+
+result<void> value();
 
 } // namespace aw
 

@@ -25,6 +25,9 @@
     <ClInclude Include="await\detail\result_impl.h" />
     <ClInclude Include="await\result.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="await\result.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6371A442-C029-439A-87D1-FA9E50D24ABB}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

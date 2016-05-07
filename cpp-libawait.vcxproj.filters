@@ -14,4 +14,7 @@
       <UniqueIdentifier>{68a49b94-10b6-4bd3-9b44-ff81c8ac5e84}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="await\result.cpp" />
+  </ItemGroup>
 </Project>

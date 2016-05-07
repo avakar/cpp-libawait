@@ -141,6 +141,9 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\cpp-libawait.vcxproj">
+      <Project>{6371a442-c029-439a-87d1-fa9e50d24abb}</Project>
+    </ProjectReference>
     <ProjectReference Include="mutest\cppmutest.vcxproj">
       <Project>{78d561f7-4da5-4545-a6aa-b34ea2b71216}</Project>
     </ProjectReference>
