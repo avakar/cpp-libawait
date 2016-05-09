@@ -10,4 +10,4 @@ SRCS= \
 	test/task.cpp
 
 all:
-	$(CXX) $(SRCS) -I . -I test/mutest -O2 -g -o libawait-test -std=c++14
+	$(CXX) $(SRCS) -I . -I test/mutest -O2 -g -o libawait-test -std=c++11
