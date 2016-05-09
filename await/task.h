@@ -15,6 +15,7 @@ struct task
 	task();
 	~task();
 
+	task(std::exception_ptr e);
 	task(result<T> && v);
 	task(result<T> const & v);
 
@@ -34,6 +35,7 @@ struct task<void>
 	: task<detail::unit_t>
 {
 	task();
+	task(std::exception_ptr e);
 	task(result<void> && v);
 	task(result<void> const & v);
 

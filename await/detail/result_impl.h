@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <new>
+#include <utility>
 
 template <typename T>
 aw::result<T>::result(result const & o)

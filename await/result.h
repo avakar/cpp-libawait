@@ -40,6 +40,7 @@ private:
 	kind_t m_kind;
 	typename std::aligned_union<0, T, std::exception_ptr>::type m_storage;
 
+	template <typename>
 	friend struct result;
 };
 

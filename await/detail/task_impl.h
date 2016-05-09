@@ -47,6 +47,13 @@ aw::task<T>::~task()
 }
 
 template <typename T>
+aw::task<T>::task(std::exception_ptr e)
+	: m_kind(kind::exception)
+{
+	new(&m_storage) std::exception_ptr(std::move(e));
+}
+
+template <typename T>
 aw::task<T>::task(result<T> && v)
 {
 	if (v.has_exception())
