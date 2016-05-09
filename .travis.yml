@@ -8,4 +8,6 @@ addons:
       - g++-5
     sources: &sources
       - ubuntu-toolchain-r-test
-script: make && ./libawait-test
+script:
+  - export CXX=g++-5
+  - make && ./libawait-test
