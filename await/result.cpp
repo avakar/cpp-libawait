@@ -15,29 +15,14 @@ aw::result<void>::result(std::exception_ptr e)
 {
 }
 
-bool aw::result<void>::has_value() const
-{
-	return this->result<detail::unit_t>::has_value();
-}
-
-bool aw::result<void>::has_exception() const
-{
-	return this->result<detail::unit_t>::has_exception();
-}
-
 void aw::result<void>::get()
 {
 	(void)this->result<detail::unit_t>::get();
 }
 
-std::exception_ptr aw::result<void>::exception() const
+void aw::result<void>::value()
 {
-	return this->result<detail::unit_t>::exception();
-}
-
-void aw::result<void>::rethrow() const
-{
-	this->result<detail::unit_t>::rethrow();
+	(void)this->result<detail::unit_t>::value();
 }
 
 aw::result<void> aw::result<void>::from_value()

@@ -13,12 +13,19 @@ template <typename T>
 struct task
 {
 	task();
+	task(task && o);
+	task & operator=(task && o);
 	~task();
 
 	task(std::exception_ptr e);
-	task(result<T> && v);
-	task(result<T> const & v);
 
+	template <typename U>
+	task(result<U> && v);
+
+	template <typename U>
+	task(result<U> const & v);
+
+	void clear();
 	bool empty() const;
 
 private:
@@ -34,12 +41,12 @@ template <>
 struct task<void>
 	: task<detail::unit_t>
 {
-	task();
+	task() = default;
+	task(task && o);
+	task & operator=(task && o);
 	task(std::exception_ptr e);
 	task(result<void> && v);
 	task(result<void> const & v);
-
-	using task<detail::unit_t>::empty;
 };
 
 } // namespace aw

@@ -101,19 +101,22 @@ bool aw::result<T>::has_exception() const
 }
 
 template <typename T>
-T & aw::result<T>::get()
+T aw::result<T>::get()
 {
 	this->rethrow();
+	return std::move(this->value());
+}
 
+template <typename T>
+T & aw::result<T>::value()
+{
 	assert(m_kind == kind_t::value);
 	return reinterpret_cast<T &>(m_storage);
 }
 
 template <typename T>
-T const & aw::result<T>::get() const
+T const & aw::result<T>::value() const
 {
-	this->rethrow();
-
 	assert(m_kind == kind_t::value);
 	return reinterpret_cast<T const &>(m_storage);
 }

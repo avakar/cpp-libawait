@@ -24,8 +24,9 @@ public:
 
 	bool has_value() const;
 	bool has_exception() const;
-	T & get();
-	T const & get() const;
+	T get();
+	T & value();
+	T const & value() const;
 	std::exception_ptr exception() const;
 	void rethrow() const;
 
@@ -52,11 +53,8 @@ struct result<void>
 	result(result && o);
 	result(std::exception_ptr e);
 
-	bool has_value() const;
-	bool has_exception() const;
 	void get();
-	std::exception_ptr exception() const;
-	void rethrow() const;
+	void value();
 
 	static result<void> from_value();
 

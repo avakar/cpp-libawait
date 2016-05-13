@@ -42,8 +42,40 @@ aw::task<T>::task()
 }
 
 template <typename T>
+aw::task<T>::task(task && o)
+	: m_kind(kind::empty)
+{
+	*this = std::move(o);
+}
+
+template <typename T>
+aw::task<T> & aw::task<T>::operator=(task && o)
+{
+	this->clear();
+
+	m_kind = o.m_kind;
+	o.m_kind = kind::empty;
+
+	if (m_kind == kind::exception)
+	{
+		std::exception_ptr & oo = reinterpret_cast<std::exception_ptr &>(o.m_storage);
+		new(&m_storage) std::exception_ptr(std::move(oo));
+		oo.~exception_ptr();
+	}
+	else if (m_kind == kind::value)
+	{
+		T & oo = reinterpret_cast<T &>(o.m_storage);
+		new(&m_storage) T(std::move(oo));
+		oo.~T();
+	}
+
+	return *this;
+}
+
+template <typename T>
 aw::task<T>::~task()
 {
+	this->clear();
 }
 
 template <typename T>
@@ -54,7 +86,8 @@ aw::task<T>::task(std::exception_ptr e)
 }
 
 template <typename T>
-aw::task<T>::task(result<T> && v)
+template <typename U>
+aw::task<T>::task(result<U> && v)
 {
 	if (v.has_exception())
 	{
@@ -64,12 +97,13 @@ aw::task<T>::task(result<T> && v)
 	else
 	{
 		m_kind = kind::value;
-		new(&m_storage) T(std::move(v.get()));
+		new(&m_storage) T(std::move(v.value()));
 	}
 }
 
 template <typename T>
-aw::task<T>::task(result<T> const & v)
+template <typename U>
+aw::task<T>::task(result<U> const & v)
 {
 	if (v.has_exception())
 	{
@@ -79,8 +113,26 @@ aw::task<T>::task(result<T> const & v)
 	else
 	{
 		m_kind = kind::value;
-		new(&m_storage) T(v.get());
+		new(&m_storage) T(v.value());
 	}
+}
+
+template <typename T>
+void aw::task<T>::clear()
+{
+	switch (m_kind)
+	{
+	case kind::empty:
+		break;
+	case kind::exception:
+		reinterpret_cast<std::exception_ptr &>(m_storage).~exception_ptr();
+		break;
+	case kind::value:
+		reinterpret_cast<T &>(m_storage).~T();
+		break;
+	}
+
+	m_kind = kind::empty;
 }
 
 template <typename T>
