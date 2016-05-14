@@ -79,7 +79,7 @@ aw::task<T>::~task()
 }
 
 template <typename T>
-aw::task<T>::task(nullptr_t)
+aw::task<T>::task(std::nullptr_t)
 	: m_kind(kind::empty)
 {
 }

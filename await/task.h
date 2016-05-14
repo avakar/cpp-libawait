@@ -6,6 +6,7 @@
 #include "detail/task_access.h"
 #include <type_traits>
 #include <exception>
+#include <cstddef>
 
 namespace aw {
 
@@ -17,7 +18,7 @@ struct task
 	task & operator=(task && o);
 	~task();
 
-	task(nullptr_t);
+	task(std::nullptr_t);
 
 	task(std::exception_ptr e);
 
@@ -46,7 +47,7 @@ struct task<void>
 	task() = default;
 	task(task && o);
 	task & operator=(task && o);
-	task(nullptr_t);
+	task(std::nullptr_t);
 	task(std::exception_ptr e);
 	task(result<void> && v);
 	task(result<void> const & v);

@@ -12,7 +12,7 @@ aw::task<void> & aw::task<void>::operator=(task && o)
 	return *this;
 }
 
-aw::task<void>::task(nullptr_t)
+aw::task<void>::task(std::nullptr_t)
 	: task<detail::unit_t>(nullptr)
 {
 }
