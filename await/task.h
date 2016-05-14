@@ -17,6 +17,8 @@ struct task
 	task & operator=(task && o);
 	~task();
 
+	task(nullptr_t);
+
 	task(std::exception_ptr e);
 
 	template <typename U>
@@ -44,6 +46,7 @@ struct task<void>
 	task() = default;
 	task(task && o);
 	task & operator=(task && o);
+	task(nullptr_t);
 	task(std::exception_ptr e);
 	task(result<void> && v);
 	task(result<void> const & v);

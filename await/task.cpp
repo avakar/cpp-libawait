@@ -12,6 +12,11 @@ aw::task<void> & aw::task<void>::operator=(task && o)
 	return *this;
 }
 
+aw::task<void>::task(nullptr_t)
+	: task<detail::unit_t>(nullptr)
+{
+}
+
 aw::task<void>::task(std::exception_ptr e)
 	: task<detail::unit_t>(std::move(e))
 {

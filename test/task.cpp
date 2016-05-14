@@ -28,6 +28,12 @@ TEST("aw::task should support default construction")
 	chk t.empty();
 }
 
+TEST("aw::task should support construction from nullptr")
+{
+	aw::task<int> t = nullptr;
+	chk t.empty();
+}
+
 TEST("empty aw::task should support move construction")
 {
 	aw::task<int> t;
@@ -146,6 +152,12 @@ TEST("aw::task should support exceptions")
 	}
 
 	chk counter == 0;
+}
+
+TEST("aw::task<void> should support construction from nullptr")
+{
+	aw::task<void> t = nullptr;
+	chk t.empty();
 }
 
 TEST("aw::task<void> should support values")

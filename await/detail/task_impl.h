@@ -79,9 +79,16 @@ aw::task<T>::~task()
 }
 
 template <typename T>
+aw::task<T>::task(nullptr_t)
+	: m_kind(kind::empty)
+{
+}
+
+template <typename T>
 aw::task<T>::task(std::exception_ptr e)
 	: m_kind(kind::exception)
 {
+	assert(e != nullptr);
 	new(&m_storage) std::exception_ptr(std::move(e));
 }
 
