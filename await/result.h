@@ -1,7 +1,6 @@
 #ifndef AWAIT_RESULT_H
 #define AWAIT_RESULT_H
 
-#include "detail/unit.h"
 #include <type_traits>
 #include <exception>
 
@@ -47,19 +46,21 @@ private:
 
 template <>
 struct result<void>
-	: result<detail::unit_t>
 {
-	result(result const & o);
-	result(result && o);
 	result(std::exception_ptr e);
 
+	bool has_value() const;
+	bool has_exception() const;
 	void get();
-	void value();
+	std::exception_ptr exception() const;
+	void rethrow() const;
 
 	static result<void> from_value();
 
 private:
 	result();
+
+	std::exception_ptr m_exception;
 };
 
 template <typename T>

@@ -1,28 +1,35 @@
 #include "result.h"
 
-aw::result<void>::result(result const & o)
-	: result<detail::unit_t>(static_cast<result<detail::unit_t> const &>(o))
-{
-}
-
-aw::result<void>::result(result && o)
-	: result<detail::unit_t>(static_cast<result<detail::unit_t> &&>(o))
-{
-}
-
 aw::result<void>::result(std::exception_ptr e)
-	: result<detail::unit_t>(e)
+	: m_exception(std::move(e))
 {
+	assert(m_exception != nullptr);
+}
+
+bool aw::result<void>::has_value() const
+{
+	return m_exception == nullptr;
+}
+
+bool aw::result<void>::has_exception() const
+{
+	return m_exception != nullptr;
 }
 
 void aw::result<void>::get()
 {
-	(void)this->result<detail::unit_t>::get();
+	this->rethrow();
 }
 
-void aw::result<void>::value()
+std::exception_ptr aw::result<void>::exception() const
 {
-	(void)this->result<detail::unit_t>::value();
+	return m_exception;
+}
+
+void aw::result<void>::rethrow() const
+{
+	if (m_exception != nullptr)
+		std::rethrow_exception(m_exception);
 }
 
 aw::result<void> aw::result<void>::from_value()
@@ -31,7 +38,7 @@ aw::result<void> aw::result<void>::from_value()
 }
 
 aw::result<void>::result()
-	: result<detail::unit_t>(result<detail::unit_t>::from_value(detail::unit_t()))
+	: m_exception(nullptr)
 {
 }
 

@@ -8,9 +8,6 @@
     <ClInclude Include="await\detail\result_impl.h">
       <Filter>detail</Filter>
     </ClInclude>
-    <ClInclude Include="await\detail\unit.h">
-      <Filter>detail</Filter>
-    </ClInclude>
     <ClInclude Include="await\task.h" />
     <ClInclude Include="await\detail\task_impl.h">
       <Filter>detail</Filter>
