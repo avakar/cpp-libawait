@@ -23,14 +23,15 @@
     <ClInclude Include="await\detail\run_impl.h" />
     <ClInclude Include="await\detail\task_access.h" />
     <ClInclude Include="await\detail\task_impl.h" />
+    <ClInclude Include="await\detail\task_storage.h" />
+    <ClInclude Include="await\detail\task_vtable.h" />
     <ClInclude Include="await\result.h" />
     <ClInclude Include="await\run.h" />
     <ClInclude Include="await\task.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="await\detail\run_impl.cpp" />
+    <ClCompile Include="await\detail\task_vtable.cpp" />
     <ClCompile Include="await\result.cpp" />
-    <ClCompile Include="await\task.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6371A442-C029-439A-87D1-FA9E50D24ABB}</ProjectGuid>

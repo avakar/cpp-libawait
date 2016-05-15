@@ -3,6 +3,8 @@
 
 #include "result.h"
 #include "detail/task_access.h"
+#include "detail/task_vtable.h"
+#include "detail/task_storage.h"
 #include <type_traits>
 #include <exception>
 #include <cstddef>
@@ -18,6 +20,7 @@ struct task
 	~task();
 
 	task(std::nullptr_t);
+
 	task(std::exception_ptr e);
 
 	template <typename U>
@@ -30,35 +33,8 @@ struct task
 	bool empty() const;
 
 private:
-	typedef detail::task_kind kind;
-
-	kind m_kind;
-	typename std::aligned_union<0, T, std::exception_ptr>::type m_storage;
-
-	friend detail::task_access;
-};
-
-template <>
-struct task<void>
-{
-	task();
-	task(task && o);
-	task & operator=(task && o);
-	~task();
-
-	task(std::nullptr_t);
-	task(std::exception_ptr e);
-
-	task(result<void> const & v);
-
-	void clear();
-	bool empty() const;
-
-private:
-	typedef detail::task_kind kind;
-
-	kind m_kind;
-	typename std::aligned_union<0, std::exception_ptr>::type m_storage;
+	detail::task_vtable<T> const * m_vtable;
+	typename detail::task_storage<T>::type m_storage;
 
 	friend detail::task_access;
 };

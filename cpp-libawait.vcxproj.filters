@@ -16,6 +16,12 @@
     <ClInclude Include="await\detail\run_impl.h">
       <Filter>detail</Filter>
     </ClInclude>
+    <ClInclude Include="await\detail\task_storage.h">
+      <Filter>detail</Filter>
+    </ClInclude>
+    <ClInclude Include="await\detail\task_vtable.h">
+      <Filter>detail</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="detail">
@@ -24,8 +30,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="await\result.cpp" />
-    <ClCompile Include="await\task.cpp" />
-    <ClCompile Include="await\detail\run_impl.cpp">
+    <ClCompile Include="await\detail\task_vtable.cpp">
       <Filter>detail</Filter>
     </ClCompile>
   </ItemGroup>
