@@ -4,7 +4,7 @@ SRCS= \
 	test/mutest/mutest/detail/repr.cpp \
 	test/mutest/utest_main.cpp \
 	await/result.cpp \
-	await/detail/task_vtable.cpp \
+	await/detail/simple_commands.cpp \
 	test/result.cpp \
 	test/task.cpp
 

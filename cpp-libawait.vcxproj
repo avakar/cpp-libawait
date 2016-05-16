@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="await\detail\result_impl.h" />
     <ClInclude Include="await\detail\run_impl.h" />
+    <ClInclude Include="await\detail\simple_commands.h" />
     <ClInclude Include="await\detail\task_access.h" />
     <ClInclude Include="await\detail\task_impl.h" />
     <ClInclude Include="await\detail\task_storage.h" />
@@ -30,7 +31,7 @@
     <ClInclude Include="await\task.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="await\detail\task_vtable.cpp" />
+    <ClCompile Include="await\detail\simple_commands.cpp" />
     <ClCompile Include="await\result.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
