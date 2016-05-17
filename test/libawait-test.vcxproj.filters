@@ -3,5 +3,6 @@
   <ItemGroup>
     <ClCompile Include="task.cpp" />
     <ClCompile Include="result.cpp" />
+    <ClCompile Include="then.cpp" />
   </ItemGroup>
 </Project>

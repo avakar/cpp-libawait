@@ -6,6 +6,7 @@
 #include "detail/task_vtable.h"
 #include "detail/simple_commands.h"
 #include "detail/task_storage.h"
+#include "detail/then_traits.h"
 #include <type_traits>
 #include <exception>
 #include <cstddef>
@@ -33,6 +34,9 @@ struct task
 	void clear();
 	bool empty() const;
 
+	template <typename F>
+	typename detail::then_traits<T, F>::type then(F && f);
+
 private:
 	detail::task_vtable<T> const * m_vtable;
 	typename detail::task_storage<T>::type m_storage;
@@ -43,5 +47,6 @@ private:
 } // namespace aw
 
 #include "detail/task_impl.h"
+#include "detail/then_impl.h"
 
 #endif // AWAIT_TASK_H

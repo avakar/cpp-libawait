@@ -148,6 +148,7 @@
   <ItemGroup>
     <ClCompile Include="result.cpp" />
     <ClCompile Include="task.cpp" />
+    <ClCompile Include="then.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

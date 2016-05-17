@@ -25,6 +25,12 @@
     <ClInclude Include="await\detail\simple_commands.h">
       <Filter>detail</Filter>
     </ClInclude>
+    <ClInclude Include="await\detail\then_impl.h">
+      <Filter>detail</Filter>
+    </ClInclude>
+    <ClInclude Include="await\detail\then_traits.h">
+      <Filter>detail</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="detail">

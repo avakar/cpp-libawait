@@ -6,6 +6,7 @@ SRCS= \
 	await/result.cpp \
 	await/detail/simple_commands.cpp \
 	test/result.cpp \
+	test/then.cpp \
 	test/task.cpp
 
 all:
