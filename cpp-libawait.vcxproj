@@ -33,6 +33,7 @@
     <ClInclude Include="await\task.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="await\detail\run_impl.cpp" />
     <ClCompile Include="await\detail\simple_commands.cpp" />
     <ClCompile Include="await\result.cpp" />
   </ItemGroup>
