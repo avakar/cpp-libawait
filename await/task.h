@@ -37,6 +37,9 @@ struct task
 	template <typename F>
 	typename detail::then_traits<T, F>::type then(F && f);
 
+	template <typename F>
+	decltype(std::declval<F>()(std::declval<result<T>>())) continue_with(F && f);
+
 private:
 	detail::task_vtable<T> const * m_vtable;
 	typename detail::task_storage<T>::type m_storage;
