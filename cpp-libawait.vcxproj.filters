@@ -38,6 +38,9 @@
     <ClInclude Include="await\detail\command.h">
       <Filter>detail</Filter>
     </ClInclude>
+    <ClInclude Include="await\detail\win32_error.h">
+      <Filter>detail</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="detail">
@@ -53,6 +56,9 @@
       <Filter>detail</Filter>
     </ClCompile>
     <ClCompile Include="await\detail\win32_run.cpp">
+      <Filter>detail</Filter>
+    </ClCompile>
+    <ClCompile Include="await\detail\win32_error.cpp">
       <Filter>detail</Filter>
     </ClCompile>
   </ItemGroup>
