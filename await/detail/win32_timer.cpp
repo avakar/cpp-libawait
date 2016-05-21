@@ -1,6 +1,5 @@
 #include "../timer.h"
 #include "command.h"
-#include "task_vtable.h"
 #include "win32_scheduler.h"
 
 aw::task<void> aw::wait_ms(int64_t ms)
