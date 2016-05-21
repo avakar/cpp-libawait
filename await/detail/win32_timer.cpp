@@ -5,7 +5,7 @@
 aw::task<void> aw::wait_ms(int64_t ms)
 {
 	struct impl
-		: handle_completion_sink
+		: detail::scheduler::handle_completion_sink
 	{
 		typedef void value_type;
 

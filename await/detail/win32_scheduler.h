@@ -4,13 +4,13 @@
 #include "task_vtable.h"
 #include <windows.h>
 
-struct handle_completion_sink
-{
-	virtual void on_completion() = 0;
-};
-
 struct aw::detail::scheduler
 {
+	struct handle_completion_sink
+	{
+		virtual void on_completion() = 0;
+	};
+
 	virtual void add_handle(HANDLE h, handle_completion_sink & sink) = 0;
 };
 
