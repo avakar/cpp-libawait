@@ -5,7 +5,7 @@
 aw::task<void> aw::wait_ms(int64_t ms)
 {
 	struct impl
-		: detail::scheduler::handle_completion_sink
+		: private detail::scheduler::handle_completion_sink
 	{
 		typedef void value_type;
 
@@ -45,6 +45,7 @@ aw::task<void> aw::wait_ms(int64_t ms)
 			return nullptr;
 		}
 
+	private:
 		void on_completion() override
 		{
 			m_sink->on_completion(aw::value());
