@@ -34,6 +34,7 @@ task_vtable<T> const * value_vtable()
 	};
 
 	static task_vtable<T> const vtable = {
+		nullptr,
 		&impl::get_result,
 		&impl::move_to,
 		&impl::destroy,
@@ -73,6 +74,7 @@ task_vtable<T> const * construct_exception(void * self, std::exception_ptr && e)
 	};
 
 	static task_vtable<T> const vtable = {
+		nullptr,
 		&impl::get_result,
 		&impl::move_to,
 		&impl::destroy,

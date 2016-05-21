@@ -4,5 +4,6 @@
     <ClCompile Include="task.cpp" />
     <ClCompile Include="result.cpp" />
     <ClCompile Include="then.cpp" />
+    <ClCompile Include="timer.cpp" />
   </ItemGroup>
 </Project>

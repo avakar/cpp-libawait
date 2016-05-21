@@ -2,17 +2,27 @@
 #include <new>
 
 template <typename T>
-aw::detail::task_vtable<T> const * aw::detail::task_access::pull_vtable(task<T> & t)
+aw::detail::task_vtable<T> const * aw::detail::task_access::get_vtable(task<T> & t)
 {
-	task_vtable<T> const * vtable = t.m_vtable;
-	t.m_vtable = nullptr;
-	return vtable;
+	return t.m_vtable;
+}
+
+template <typename T>
+void aw::detail::task_access::set_vtable(task<T> & t, typename std::identity<task_vtable<T> const *>::type vtable)
+{
+	t.m_vtable = vtable;
 }
 
 template <typename T>
 void * aw::detail::task_access::storage(task<T> & t)
 {
 	return &t.m_storage;
+}
+
+template <typename T>
+size_t aw::detail::task_access::storage_size()
+{
+	return sizeof(task<T>::m_storage);
 }
 
 template <typename T>

@@ -31,6 +31,10 @@
     <ClInclude Include="await\detail\then_traits.h">
       <Filter>detail</Filter>
     </ClInclude>
+    <ClInclude Include="await\timer.h" />
+    <ClInclude Include="await\detail\win32_scheduler.h">
+      <Filter>detail</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="detail">
@@ -42,7 +46,10 @@
     <ClCompile Include="await\detail\simple_commands.cpp">
       <Filter>detail</Filter>
     </ClCompile>
-    <ClCompile Include="await\detail\run_impl.cpp">
+    <ClCompile Include="await\detail\win32_timer.cpp">
+      <Filter>detail</Filter>
+    </ClCompile>
+    <ClCompile Include="await\detail\win32_run.cpp">
       <Filter>detail</Filter>
     </ClCompile>
   </ItemGroup>

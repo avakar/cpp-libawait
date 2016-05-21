@@ -24,6 +24,7 @@ aw::detail::task_vtable<void> const * aw::detail::value_vtable()
 	};
 
 	static task_vtable<void> const vtable = {
+		nullptr,
 		&impl::get_result,
 		&impl::move_to,
 		&impl::destroy,

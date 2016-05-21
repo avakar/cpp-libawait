@@ -28,13 +28,16 @@
     <ClInclude Include="await\detail\task_vtable.h" />
     <ClInclude Include="await\detail\then_impl.h" />
     <ClInclude Include="await\detail\then_traits.h" />
+    <ClInclude Include="await\detail\win32_scheduler.h" />
     <ClInclude Include="await\result.h" />
     <ClInclude Include="await\run.h" />
     <ClInclude Include="await\task.h" />
+    <ClInclude Include="await\timer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="await\detail\run_impl.cpp" />
     <ClCompile Include="await\detail\simple_commands.cpp" />
+    <ClCompile Include="await\detail\win32_run.cpp" />
+    <ClCompile Include="await\detail\win32_timer.cpp" />
     <ClCompile Include="await\result.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
