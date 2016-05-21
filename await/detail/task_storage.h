@@ -3,20 +3,21 @@
 
 #include <type_traits>
 #include <exception>
-#include <cstddef>
+#include <stdint.h>
+#include <stddef.h>
 
 namespace aw {
 namespace detail {
 
 template <typename T>
 struct task_storage
-	: std::aligned_union<sizeof(intptr_t[4]), T, std::exception_ptr, std::max_align_t>
+	: std::aligned_union<sizeof(intptr_t[4]), T, std::exception_ptr, max_align_t>
 {
 };
 
 template <>
 struct task_storage<void>
-	: std::aligned_union<sizeof(intptr_t[4]), std::exception_ptr, std::max_align_t>
+	: std::aligned_union<sizeof(intptr_t[4]), std::exception_ptr, max_align_t>
 {
 };
 

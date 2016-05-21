@@ -3,10 +3,13 @@ SRCS= \
 	test/mutest/mutest/detail/registry.cpp \
 	test/mutest/mutest/detail/repr.cpp \
 	test/mutest/utest_main.cpp \
+	await/detail/linux_run.cpp \
+	await/detail/linux_timer.cpp \
 	await/result.cpp \
 	await/detail/simple_commands.cpp \
 	test/result.cpp \
 	test/then.cpp \
+	test/timer.cpp \
 	test/task.cpp
 
 all:

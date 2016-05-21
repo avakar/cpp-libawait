@@ -9,7 +9,8 @@
 #include "detail/then_traits.h"
 #include <type_traits>
 #include <exception>
-#include <cstddef>
+#include <stddef.h>
+#include <stdint.h>
 
 namespace aw {
 
