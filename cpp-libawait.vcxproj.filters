@@ -35,6 +35,9 @@
     <ClInclude Include="await\detail\win32_scheduler.h">
       <Filter>detail</Filter>
     </ClInclude>
+    <ClInclude Include="await\detail\command.h">
+      <Filter>detail</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="detail">
