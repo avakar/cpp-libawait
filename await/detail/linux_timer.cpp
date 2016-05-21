@@ -58,5 +58,5 @@ aw::task<void> aw::wait_ms(int64_t ms)
 		detail::task_completion<void> * m_sink;
 	};
 
-	return make_command<impl>(ms);
+	return detail::make_command<impl>(ms);
 }
