@@ -9,15 +9,30 @@
 namespace aw {
 namespace detail {
 
+template <typename... P>
+struct union_size;
+
+template <typename T>
+struct union_size<T>
+{
+	static size_t const value = sizeof(T);
+};
+
+template <typename T, typename... P>
+struct union_size<T, P...>
+{
+	static size_t const value = union_size<P...>::value > sizeof(T)? union_size<P...>::value: sizeof(T);
+};
+
 template <typename T>
 struct task_storage
-	: std::aligned_union<sizeof(intptr_t[4]), T, std::exception_ptr, max_align_t>
+	: std::aligned_storage<union_size<intptr_t[4], std::exception_ptr, T>::value>
 {
 };
 
 template <>
 struct task_storage<void>
-	: std::aligned_union<sizeof(intptr_t[4]), std::exception_ptr, max_align_t>
+	: std::aligned_storage<union_size<intptr_t[4], std::exception_ptr>::value>
 {
 };
 
