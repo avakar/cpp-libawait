@@ -67,7 +67,7 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 		{
 			epoll_event ee;
 			epoll_wait(sch.m_epoll, &ee, 1, -1);
-			((fd_completion_sink *)ee.data.ptr)->on_completion(sch, ee.events);
+			((detail::scheduler::fd_completion_sink *)ee.data.ptr)->on_completion(sch, ee.events);
 		}
 
 		vtable = detail::task_access::get_vtable(t);

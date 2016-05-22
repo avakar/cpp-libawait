@@ -3,13 +3,13 @@
 
 #include "task_vtable.h"
 
-struct fd_completion_sink
-{
-	virtual void on_completion(short revents) = 0;
-};
-
 struct aw::detail::scheduler
 {
+	struct fd_completion_sink
+	{
+		virtual void on_completion(scheduler & sch, short revents) = 0;
+	};
+
 	virtual void add_fd(int fd, short events, fd_completion_sink & sink) = 0;
 };
 

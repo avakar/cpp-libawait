@@ -5,7 +5,7 @@ namespace aw {
 namespace detail {
 
 template <typename T, typename F>
-auto aw::detail::continue_with(result<T> && r, F && f) -> decltype(std::declval<F>()(std::declval<result<T>>()));
+auto continue_with(result<T> && r, F && f) -> decltype(std::declval<F>()(std::declval<result<T>>()));
 
 }
 }
