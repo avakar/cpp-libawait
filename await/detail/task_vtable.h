@@ -15,7 +15,7 @@ struct scheduler;
 template <typename T>
 struct task_completion
 {
-	virtual void on_completion(task<T> && t) = 0;
+	virtual void on_completion(scheduler & sch, task<T> && t) = 0;
 };
 
 template <typename T>

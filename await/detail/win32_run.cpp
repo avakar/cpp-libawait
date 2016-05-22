@@ -20,8 +20,11 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 			++m_handle_count;
 		}
 
-		void on_completion(task<void> && t) override
+		void on_completion(scheduler & sch, task<void> && t) override
 		{
+			assert(&sch == this);
+			(void)sch;
+
 			m_task = std::move(t);
 			m_updated = true;
 		}
@@ -62,7 +65,7 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 				std::swap(sch.m_sinks[i], sch.m_sinks[sch.m_handle_count - 1]);
 				--sch.m_handle_count;
 
-				sink->on_completion();
+				sink->on_completion(sch);
 			}
 		}
 

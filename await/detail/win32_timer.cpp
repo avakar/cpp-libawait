@@ -54,9 +54,9 @@ aw::task<void> aw::wait_ms(int64_t ms)
 		}
 
 	private:
-		void on_completion() override
+		void on_completion(detail::scheduler & sch) override
 		{
-			m_sink->on_completion(aw::value());
+			m_sink->on_completion(sch, aw::value());
 		}
 
 		HANDLE m_h;
