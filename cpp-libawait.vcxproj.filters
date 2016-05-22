@@ -41,6 +41,9 @@
     <ClInclude Include="await\detail\win32_error.h">
       <Filter>detail</Filter>
     </ClInclude>
+    <ClInclude Include="await\detail\task_traits.h">
+      <Filter>detail</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="detail">

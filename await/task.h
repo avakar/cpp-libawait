@@ -36,7 +36,7 @@ struct task
 	bool empty() const;
 
 	template <typename F>
-	typename detail::then_traits<T, F>::type then(F && f);
+	typename detail::then_traits<T, F>::task_type then(F && f);
 
 	template <typename F>
 	decltype(std::declval<F>()(std::declval<result<T>>())) continue_with(F && f);

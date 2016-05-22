@@ -32,8 +32,11 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 			epoll_ctl(m_epoll, EPOLL_CTL_ADD, fd, &ee);
 		}
 
-		void on_completion(task<void> && t) override
+		void on_completion(scheduler & sch, task<void> && t) override
 		{
+			assert(&sch == this);
+			(void)sch;
+
 			m_task = std::move(t);
 			m_updated = true;
 		}
@@ -64,7 +67,7 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 		{
 			epoll_event ee;
 			epoll_wait(sch.m_epoll, &ee, 1, -1);
-			((fd_completion_sink *)ee.data.ptr)->on_completion(ee.events);
+			((fd_completion_sink *)ee.data.ptr)->on_completion(sch, ee.events);
 		}
 
 		vtable = detail::task_access::get_vtable(t);
