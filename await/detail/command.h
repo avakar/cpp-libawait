@@ -75,7 +75,7 @@ aw::task<typename I::value_type> aw::detail::make_command(P &&... p)
 				static void destroy(void * self)
 				{
 					I ** ss = static_cast<I **>(self);
-					delete ss;
+					delete *ss;
 				}
 			};
 
