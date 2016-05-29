@@ -64,10 +64,7 @@ private:
 };
 
 template <typename T>
-result<T> value(T && v);
-
-template <typename T>
-result<T> value(T const & v);
+result<std::remove_const_t<std::remove_reference_t<T>>> value(T && v);
 
 result<void> value();
 
