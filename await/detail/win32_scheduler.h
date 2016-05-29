@@ -6,12 +6,20 @@
 
 struct aw::detail::scheduler
 {
-	struct handle_completion_sink
+	struct completion_sink
 	{
-		virtual void on_completion(scheduler & sch) = 0;
+		enum class completion_result { finish, reschedule };
+		virtual completion_result on_completion(scheduler & sch) = 0;
 	};
 
-	virtual void add_handle(HANDLE h, handle_completion_sink & sink) = 0;
+	virtual void add_handle(HANDLE h, completion_sink & sink) = 0;
+
+	struct sleeper_node
+	{
+		virtual void wakeup() = 0;
+	};
+
+	virtual sleeper_node * register_sleeper(completion_sink & sink) = 0;
 };
 
 #endif // AWAIT_DETAIL_WIN32_SCHEDULER_H
