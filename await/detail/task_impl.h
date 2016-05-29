@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <new>
+#include <tuple>
 
 template <typename T>
 aw::detail::task_vtable<T> const * aw::detail::task_access::get_vtable(task<T> & t)
@@ -103,4 +104,32 @@ template <typename T>
 bool aw::task<T>::empty() const
 {
 	return m_vtable == nullptr;
+}
+
+template <typename T>
+aw::task<void> aw::task<T>::ignore_result()
+{
+	return this->then([](T &&) { return aw::value(); });
+}
+
+template <typename T>
+template <typename... P>
+aw::task<T> aw::task<T>::hold(P &&... p)
+{
+	struct X
+	{
+		X(P &&... v)
+			: m_v(std::forward<P>(v)...)
+		{
+		}
+
+		task<T> operator()(result<T> && r)
+		{
+			return std::move(r);
+		}
+
+		std::tuple<std::remove_const_t<std::remove_reference_t<P>>...> m_v;
+	};
+
+	return this->continue_with(X(std::forward<P>(p)...));
 }

@@ -35,6 +35,11 @@ struct task
 	void clear();
 	bool empty() const;
 
+	task<void> ignore_result();
+
+	template <typename... P>
+	task<T> hold(P &&... p);
+
 	template <typename F>
 	typename detail::then_traits<T, F>::task_type then(F && f);
 
