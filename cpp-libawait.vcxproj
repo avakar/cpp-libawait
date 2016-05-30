@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="await\coroutine.h" />
     <ClInclude Include="await\detail\command.h" />
     <ClInclude Include="await\detail\result_impl.h" />
     <ClInclude Include="await\detail\run_impl.h" />

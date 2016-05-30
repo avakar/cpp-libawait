@@ -44,6 +44,7 @@
     <ClInclude Include="await\detail\task_traits.h">
       <Filter>detail</Filter>
     </ClInclude>
+    <ClInclude Include="await\coroutine.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="detail">
