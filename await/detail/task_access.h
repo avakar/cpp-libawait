@@ -29,7 +29,7 @@ struct task_access
 	static void * storage(task<T> & t);
 
 	template <typename T>
-	static size_t storage_size();
+	static constexpr size_t storage_size();
 };
 
 }

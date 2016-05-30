@@ -21,7 +21,7 @@ void * aw::detail::task_access::storage(task<T> & t)
 }
 
 template <typename T>
-size_t aw::detail::task_access::storage_size()
+constexpr size_t aw::detail::task_access::storage_size()
 {
 	return sizeof(task<T>::m_storage);
 }
