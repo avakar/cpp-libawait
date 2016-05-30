@@ -128,7 +128,7 @@ aw::task<T> aw::task<T>::hold(P &&... p)
 			return std::move(r);
 		}
 
-		std::tuple<std::remove_const_t<std::remove_reference_t<P>>...> m_v;
+		std::tuple<typename std::remove_const<typename std::remove_reference<P>::type>::type...> m_v;
 	};
 
 	return this->continue_with(X(std::forward<P>(p)...));

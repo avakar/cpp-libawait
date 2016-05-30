@@ -156,7 +156,7 @@ aw::result<T>::result()
 }
 
 template <typename T>
-aw::result<std::remove_const_t<std::remove_reference_t<T>>> aw::value(T && v)
+aw::result<typename std::remove_const<typename std::remove_reference<T>::type>::type> aw::value(T && v)
 {
-	return result<std::remove_const_t<std::remove_reference_t<T>>>::from_value(std::forward<T>(v));
+	return result<typename std::remove_const<typename std::remove_reference<T>::type>::type>::from_value(std::forward<T>(v));
 }
