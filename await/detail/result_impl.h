@@ -58,16 +58,24 @@ template <typename T>
 template <typename U>
 aw::result<T>::result(result<U> const & o)
 {
-	switch (o.m_kind)
+	try
 	{
-	case result<U>::kind_t::value:
-		m_kind = kind_t::value;
-		new(&m_storage) T(reinterpret_cast<U const &>(o.m_storage));
-		break;
-	case result<U>::kind_t::exception:
+		switch (o.m_kind)
+		{
+		case result<U>::kind_t::value:
+			m_kind = kind_t::value;
+			new(&m_storage) T(reinterpret_cast<U const &>(o.m_storage));
+			break;
+		case result<U>::kind_t::exception:
+			m_kind = kind_t::exception;
+			new(&m_storage) std::exception_ptr(reinterpret_cast<std::exception_ptr const &>(o.m_storage));
+			break;
+		}
+	}
+	catch (...)
+	{
 		m_kind = kind_t::exception;
-		new(&m_storage) std::exception_ptr(reinterpret_cast<std::exception_ptr const &>(o.m_storage));
-		break;
+		new(&m_storage) std::exception_ptr(std::current_exception());
 	}
 }
 
@@ -75,17 +83,61 @@ template <typename T>
 template <typename U>
 aw::result<T>::result(result<U> && o)
 {
-	switch (o.m_kind)
+	try
 	{
-	case result<U>::kind_t::value:
-		m_kind = kind_t::value;
-		new(&m_storage) T(reinterpret_cast<U &&>(o.m_storage));
-		break;
-	case result<U>::kind_t::exception:
+		switch (o.m_kind)
+		{
+		case result<U>::kind_t::value:
+			m_kind = kind_t::value;
+			new(&m_storage) T(reinterpret_cast<U &&>(o.m_storage));
+			break;
+		case result<U>::kind_t::exception:
+			m_kind = kind_t::exception;
+			new(&m_storage) std::exception_ptr(reinterpret_cast<std::exception_ptr &&>(o.m_storage));
+			break;
+		}
+	}
+	catch (...)
+	{
 		m_kind = kind_t::exception;
-		new(&m_storage) std::exception_ptr(reinterpret_cast<std::exception_ptr &&>(o.m_storage));
+		new(&m_storage) std::exception_ptr(std::current_exception());
+	}
+}
+
+template <typename T>
+aw::result<T> & aw::result<T>::operator=(result o)
+{
+	switch (m_kind)
+	{
+	case kind_t::value:
+		reinterpret_cast<T &>(m_storage).~T();
+		break;
+	case kind_t::exception:
+		reinterpret_cast<std::exception_ptr &>(m_storage).~exception_ptr();
 		break;
 	}
+
+	try
+	{
+		switch (o.m_kind)
+		{
+		case result<T>::kind_t::value:
+			m_kind = kind_t::value;
+			new(&m_storage) T(reinterpret_cast<T &&>(o.m_storage));
+			break;
+		case result<T>::kind_t::exception:
+			m_kind = kind_t::exception;
+			new(&m_storage) std::exception_ptr(reinterpret_cast<std::exception_ptr &&>(o.m_storage));
+			break;
+		}
+	}
+	catch (...)
+	{
+		m_kind = kind_t::exception;
+		new(&m_storage) std::exception_ptr(std::current_exception());
+	}
+
+	return *this;
 }
 
 template <typename T>
@@ -144,14 +196,29 @@ template <typename T>
 template <typename U>
 aw::result<T> aw::result<T>::from_value(U && v)
 {
-	aw::result<T> r;
-	r.m_kind = kind_t::value;
-	new (&r.m_storage) T(std::forward<U>(v));
+	aw::result<T> r((empty_t()));
+	try
+	{
+		r.m_kind = kind_t::value;
+		new (&r.m_storage) T(std::forward<U>(v));
+	}
+	catch (...)
+	{
+		r.m_kind = kind_t::exception;
+		new (&r.m_storage) std::exception_ptr(std::current_exception());
+	}
 	return std::move(r);
 }
 
 template <typename T>
 aw::result<T>::result()
+	: m_kind(kind_t::exception)
+{
+	new(&m_storage) std::exception_ptr(std::make_exception_ptr(no_result_error()));
+}
+
+template <typename T>
+aw::result<T>::result(empty_t)
 {
 }
 

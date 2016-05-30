@@ -6,10 +6,20 @@
 
 namespace aw {
 
+struct no_result_error
+	: std::exception
+{
+	char const * what() const
+	{
+		return "no_result_error";
+	}
+};
+
 template <typename T>
 struct result
 {
 public:
+	result();
 	result(result const & o);
 	result(result && o);
 	result(std::exception_ptr e);
@@ -20,6 +30,8 @@ public:
 
 	template <typename U>
 	result(result<U> && o);
+
+	result & operator=(result o);
 
 	bool has_value() const;
 	bool has_exception() const;
@@ -33,7 +45,8 @@ public:
 	static result<T> from_value(U && v);
 
 private:
-	result();
+	struct empty_t {};
+	explicit result(empty_t);
 
 	enum class kind_t { value, exception };
 
