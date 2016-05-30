@@ -9,7 +9,7 @@ namespace aw {
 struct no_result_error
 	: std::exception
 {
-	char const * what() const
+	char const * what() const noexcept override
 	{
 		return "no_result_error";
 	}

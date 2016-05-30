@@ -109,7 +109,7 @@ aw::task<typename I::value_type> aw::detail::make_command(P &&... p)
 	try
 	{
 		typedef aw::detail::make_command_impl<sizeof(I) <= detail::task_access::storage_size<T>()> impl;
-		impl::make<I>(t, std::forward<P>(p)...);
+		impl::template make<I>(t, std::forward<P>(p)...);
 	}
 	catch (...)
 	{
