@@ -99,12 +99,12 @@ aw::result<T>::result(result<U> const & o) noexcept
 {
 	if (o.has_value())
 	{
-		m_kind = kind_t::value;
+		m_kind = detail::result_kind::value;
 		detail::construct_result<T>(m_kind, &m_storage, o.value());
 	}
 	else
 	{
-		m_kind = kind_t::exception;
+		m_kind = detail::result_kind::exception;
 		new(&m_storage) std::exception_ptr(o.exception());
 	}
 }
@@ -115,12 +115,12 @@ aw::result<T>::result(result<U> && o) noexcept
 {
 	if (o.has_value())
 	{
-		m_kind = kind_t::value;
+		m_kind = detail::result_kind::value;
 		detail::construct_result<T>(m_kind, &m_storage, std::move(o.value()));
 	}
 	else
 	{
-		m_kind = kind_t::exception;
+		m_kind = detail::result_kind::exception;
 		new(&m_storage) std::exception_ptr(std::move(o.exception()));
 	}
 }
