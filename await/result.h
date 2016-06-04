@@ -68,9 +68,9 @@ private:
 };
 
 template <typename T>
-result<typename std::remove_const<typename std::remove_reference<T>::type>::type> value(T && v);
+result<typename std::remove_const<typename std::remove_reference<T>::type>::type> value(T && v) noexcept;
 
-result<void> value();
+result<void> value() noexcept;
 
 } // namespace aw
 

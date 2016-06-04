@@ -212,7 +212,7 @@ void aw::result<T>::rethrow() const
 }
 
 template <typename T>
-aw::result<typename std::remove_const<typename std::remove_reference<T>::type>::type> aw::value(T && v)
+aw::result<typename std::remove_const<typename std::remove_reference<T>::type>::type> aw::value(T && v) noexcept
 {
 	return result<typename std::remove_const<typename std::remove_reference<T>::type>::type>(in_place, std::forward<T>(v));
 }

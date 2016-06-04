@@ -47,7 +47,7 @@ void aw::result<void>::rethrow() const
 		std::rethrow_exception(m_exception);
 }
 
-aw::result<void> aw::value()
+aw::result<void> aw::value() noexcept
 {
 	return aw::result<void>(in_place);
 }
