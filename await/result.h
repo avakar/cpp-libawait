@@ -1,78 +1,69 @@
 #ifndef AWAIT_RESULT_H
 #define AWAIT_RESULT_H
 
+#include "detail/result_kind.h"
 #include <type_traits>
 #include <exception>
 
 namespace aw {
 
-struct no_result_error
-	: std::exception
-{
-	char const * what() const noexcept override
-	{
-		return "no_result_error";
-	}
-};
+struct in_place_t {};
+constexpr in_place_t in_place{};
 
 template <typename T>
 struct result
 {
 public:
-	result();
-	result(result const & o);
-	result(result && o);
-	result(std::exception_ptr e);
+	result() noexcept;
+	result(result const & o) noexcept;
+	result(result && o) noexcept;
+	result(std::exception_ptr e) noexcept;
 	~result();
 
-	template <typename U>
-	result(result<U> const & o);
+	template <typename... U>
+	explicit result(in_place_t, U &&... u) noexcept;
 
 	template <typename U>
-	result(result<U> && o);
+	result(result<U> const & o) noexcept;
 
-	result & operator=(result o);
+	template <typename U>
+	result(result<U> && o) noexcept;
 
-	bool has_value() const;
-	bool has_exception() const;
-	T get();
-	T & value();
-	T const & value() const;
-	std::exception_ptr exception() const;
+	result & operator=(result o) noexcept;
+
+	bool has_value() const noexcept;
+	T & value() noexcept;
+	T const & value() const noexcept;
+
+	bool has_exception() const noexcept;
+	std::exception_ptr & exception() noexcept;
+	std::exception_ptr const & exception() const noexcept;
+
+	T && get();
 	void rethrow() const;
 
-	template <typename U>
-	static result<T> from_value(U && v);
-
 private:
-	struct empty_t {};
-	explicit result(empty_t);
-
-	enum class kind_t { value, exception };
-
-	kind_t m_kind;
+	detail::result_kind m_kind;
 	typename std::aligned_union<0, T, std::exception_ptr>::type m_storage;
-
-	template <typename>
-	friend struct result;
 };
 
 template <>
 struct result<void>
 {
-	result(std::exception_ptr e);
+	result() noexcept;
+	result(std::exception_ptr e) noexcept;
+	explicit result(in_place_t) noexcept;
 
-	bool has_value() const;
-	bool has_exception() const;
+	bool has_value() const noexcept;
+	bool has_exception() const noexcept;
+
+	std::exception_ptr & exception() noexcept;
+	std::exception_ptr const & exception() const noexcept;
+
 	void get();
-	std::exception_ptr exception() const;
 	void rethrow() const;
 
-	static result<void> from_value();
-
 private:
-	result();
-
 	std::exception_ptr m_exception;
 };
 

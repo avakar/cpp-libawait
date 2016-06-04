@@ -1,12 +1,45 @@
 #include <await/result.h>
 #include <mutest/test.h>
 
+TEST("aw::result shall be default-constructible (with a singleton value)")
+{
+	aw::result<int> r;
+	(void)r;
+}
+
+TEST("aw::result<void> shall be default-constructible (with a singleton value)")
+{
+	aw::result<void> r;
+	(void)r;
+}
+
+TEST("aw::result constructor shall not throw")
+{
+	mutest::copy_error_tester cet;
+	while (cet.next())
+	{
+		auto t = aw::value(cet.get());
+		chk cet.good() == t.has_value();
+
+		auto u = t;
+		chk cet.good() == u.has_value();
+		chk t.has_value() || u.has_exception();
+
+		try
+		{
+			u.rethrow();
+		}
+		catch (mutest::copy_error const &)
+		{
+		}
+	}
+}
+
 TEST("aw::result should support simple values")
 {
 	aw::result<int> t = aw::value(42);
 	chk t.has_value();
 	chk !t.has_exception();
-	chk t.exception() == nullptr;
 	t.rethrow();
 	chk t.get() == 42;
 }

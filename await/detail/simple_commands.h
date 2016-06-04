@@ -14,7 +14,7 @@ task_vtable<T> const * value_vtable()
 		static result<T> get_result(void * self)
 		{
 			T * o = reinterpret_cast<T *>(self);
-			result<T> r = result<T>::from_value(std::move(*o));
+			result<T> r = result<T>(in_place, std::move(*o));
 			o->~T();
 			return std::move(r);
 		}
@@ -47,7 +47,7 @@ template <>
 task_vtable<void> const * value_vtable();
 
 template <typename T>
-task_vtable<T> const * construct_exception(void * self, std::exception_ptr && e)
+task_vtable<T> const * construct_exception(void * self, std::exception_ptr e)
 {
 	struct impl
 	{

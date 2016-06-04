@@ -80,7 +80,7 @@ struct coro_task_promise
 	void return_value(T t)
 	{
 		assert(m_impl);
-		m_impl->m_result = aw::result<T>::from_value(std::move(t));
+		m_impl->m_result = aw::result<T>(in_place, std::move(t));
 	}
 
 	void set_exception(std::exception_ptr e)
