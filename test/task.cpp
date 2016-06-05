@@ -26,12 +26,14 @@ TEST("aw::task should support default construction")
 {
 	aw::task<int> t;
 	chk t.empty();
+	chk !t;
 }
 
 TEST("aw::task should support construction from nullptr")
 {
 	aw::task<int> t = nullptr;
 	chk t.empty();
+	chk !t;
 }
 
 TEST("empty aw::task should support move construction")
@@ -59,6 +61,7 @@ TEST("aw::task should support values")
 {
 	aw::task<int> t = aw::value(42);
 	chk !t.empty();
+	chk t;
 	chk aw::run(std::move(t)) == 42;
 }
 

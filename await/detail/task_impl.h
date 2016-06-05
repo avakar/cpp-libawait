@@ -107,6 +107,12 @@ bool aw::task<T>::empty() const
 }
 
 template <typename T>
+aw::task<T>::operator bool() const
+{
+	return !this->empty();
+}
+
+template <typename T>
 aw::task<void> aw::task<T>::ignore_result()
 {
 	return this->then([](T &&) { return aw::value(); });

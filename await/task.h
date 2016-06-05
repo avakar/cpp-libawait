@@ -34,6 +34,7 @@ struct task
 
 	void clear();
 	bool empty() const;
+	explicit operator bool() const;
 
 	task<void> ignore_result();
 
