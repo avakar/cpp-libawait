@@ -70,21 +70,8 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 	};
 
 	fake_scheduler sch(t);
-
-	detail::task_vtable<void> const * vtable = detail::task_access::get_vtable(t);
-	void * storage = detail::task_access::storage(t);
-
-	while (vtable->get_result == nullptr)
+	while (detail::start_command(t, sch, sch))
 	{
-		assert(vtable->start != nullptr);
-		task<void> u = vtable->start(storage, sch, sch);
-		while (!u.empty())
-		{
-			t = std::move(u);
-			vtable = detail::task_access::get_vtable(t);
-			u = vtable->start(storage, sch, sch);
-		}
-
 		sch.m_updated = false;
 		while (!sch.m_updated)
 		{
@@ -128,10 +115,7 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 					delete &sleeper;
 			}
 		}
-
-		vtable = detail::task_access::get_vtable(t);
 	}
 
-	detail::task_access::set_vtable(t, nullptr);
-	return vtable->get_result(storage);
+	return detail::fetch_result(t);
 }

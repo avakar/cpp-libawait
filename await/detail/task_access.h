@@ -20,7 +20,7 @@ struct identity
 struct task_access
 {
 	template <typename T>
-	static task_vtable<T> const * get_vtable(task<T> & t);
+	static task_vtable<T> const * get_vtable(task<T> const & t);
 
 	template <typename T>
 	static void set_vtable(task<T> & t, typename identity<task_vtable<T> const *>::type vtable);
@@ -29,8 +29,29 @@ struct task_access
 	static void * storage(task<T> & t);
 
 	template <typename T>
+	static void const * storage(task<T> const & t);
+
+	template <typename T>
 	static constexpr size_t storage_size();
 };
+
+template <typename T>
+bool has_result(task<T> const & t);
+
+template <typename T>
+result<T> const & get_result(task<T> const & t);
+
+template <typename T>
+result<T> & get_result(task<T> & t);
+
+template <typename T>
+result<T> fetch_result(task<T> & t);
+
+template <typename T>
+bool has_command(task<T> const & t);
+
+template <typename T>
+bool start_command(task<T> & t, scheduler & sch, task_completion<T> & sink);
 
 }
 }

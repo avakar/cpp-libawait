@@ -22,7 +22,6 @@ template <typename T>
 struct task_vtable
 {
 	task<T> (*start)(void * self, scheduler & sch, task_completion<T> & sink);
-	result<T> (*get_result)(void * self);
 	void (*move_to)(void * self, void * dst);
 	void (*destroy)(void * self);
 };

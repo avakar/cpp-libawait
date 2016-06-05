@@ -44,7 +44,6 @@ struct make_command_impl<true>
 
 		static detail::task_vtable<T> const vtable = {
 			&impl::start,
-			nullptr,
 			&impl::move_to,
 			&impl::destroy,
 		};
@@ -85,7 +84,6 @@ struct make_command_impl<false>
 
 		static detail::task_vtable<T> const vtable = {
 			&impl::start,
-			nullptr,
 			&impl::move_to,
 			&impl::destroy,
 		};

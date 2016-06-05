@@ -60,9 +60,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="await\detail\simple_commands.cpp">
-      <Filter>detail</Filter>
-    </ClCompile>
     <ClCompile Include="await\detail\win32_timer.cpp">
       <Filter>detail</Filter>
     </ClCompile>

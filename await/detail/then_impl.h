@@ -74,15 +74,11 @@ template <typename F>
 decltype(std::declval<F>()(std::declval<aw::result<T>>())) aw::task<T>::continue_with(F && f)
 {
 	assert(m_vtable != nullptr);
+	if (m_vtable->start == nullptr)
+		return detail::continue_with(detail::fetch_result(*this), std::move(f));
+
 	typedef decltype(std::declval<F>()(std::declval<result<T>>())) task_U;
 	typedef typename detail::task_traits<task_U>::value_type U;
-
-	if (m_vtable->get_result)
-	{
-		result<T> r = m_vtable->get_result(&m_storage);
-		m_vtable = nullptr;
-		return detail::continue_with(std::move(r), std::move(f));
-	}
 
 	struct impl
 		: private detail::task_completion<T>
@@ -96,25 +92,13 @@ decltype(std::declval<F>()(std::declval<aw::result<T>>())) aw::task<T>::continue
 
 		task<U> start(detail::scheduler & sch, detail::task_completion<U> & sink)
 		{
-			void * storage = detail::task_access::storage(m_task);
-			detail::task_vtable<T> const * vtable = detail::task_access::get_vtable(m_task);
-
-			while (vtable->start != nullptr)
+			if (detail::start_command(m_task, sch, *this))
 			{
-				task<T> t = vtable->start(storage, sch, *this);
-				if (t.empty())
-				{
-					m_sink = &sink;
-					return nullptr;
-				}
-
-				m_task = std::move(t);
-				vtable = detail::task_access::get_vtable(m_task);
+				m_sink = &sink;
+				return nullptr;
 			}
 
-			result<T> r = vtable->get_result(storage);
-			detail::task_access::set_vtable(m_task, nullptr);
-			return detail::continue_with(std::move(r), std::move(m_f));
+			return detail::continue_with(detail::fetch_result(m_task), std::move(m_f));
 		}
 
 	private:

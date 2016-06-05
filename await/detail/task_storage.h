@@ -26,13 +26,7 @@ struct union_size<T, P...>
 
 template <typename T>
 struct task_storage
-	: std::aligned_storage<union_size<intptr_t[4], std::exception_ptr, T>::value>
-{
-};
-
-template <>
-struct task_storage<void>
-	: std::aligned_storage<union_size<intptr_t[4], std::exception_ptr>::value>
+	: std::aligned_storage<union_size<intptr_t[4], result<T>>::value>
 {
 };
 

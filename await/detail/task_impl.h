@@ -3,7 +3,7 @@
 #include <tuple>
 
 template <typename T>
-aw::detail::task_vtable<T> const * aw::detail::task_access::get_vtable(task<T> & t)
+aw::detail::task_vtable<T> const * aw::detail::task_access::get_vtable(task<T> const & t)
 {
 	return t.m_vtable;
 }
@@ -21,9 +21,73 @@ void * aw::detail::task_access::storage(task<T> & t)
 }
 
 template <typename T>
+void const * aw::detail::task_access::storage(task<T> const & t)
+{
+	return &t.m_storage;
+}
+
+template <typename T>
 constexpr size_t aw::detail::task_access::storage_size()
 {
 	return sizeof(task<T>::m_storage);
+}
+
+template <typename T>
+bool aw::detail::has_result(task<T> const & t)
+{
+	auto vtable = task_access::get_vtable(t);
+	return vtable != nullptr && vtable->start == nullptr;
+}
+
+template <typename T>
+aw::result<T> const & aw::detail::get_result(task<T> const & t)
+{
+	assert(has_result(t));
+	return *static_cast<result<T> const *>(task_access::storage(t));
+}
+
+template <typename T>
+aw::result<T> & aw::detail::get_result(task<T> & t)
+{
+	assert(has_result(t));
+	return *static_cast<result<T> *>(task_access::storage(t));
+}
+
+template <typename T>
+aw::result<T> aw::detail::fetch_result(task<T> & t)
+{
+	aw::result<T> r = std::move(get_result(t));
+	t.clear();
+	return r;
+}
+
+template <typename T>
+bool aw::detail::has_command(task<T> const & t)
+{
+	auto vtable = task_access::get_vtable(t);
+	return vtable != nullptr && vtable->start != nullptr;
+}
+
+template <typename T>
+bool aw::detail::start_command(task<T> & t, scheduler & sch, task_completion<T> & sink)
+{
+	assert(!t.empty());
+
+	task_vtable<T> const * vtable = task_access::get_vtable(t);
+	void * storage = task_access::storage(t);
+
+	for (;;)
+	{
+		if (vtable->start == nullptr)
+			return false;
+
+		task<T> u = vtable->start(storage, sch, sink);
+		if (u.empty())
+			return true;
+
+		t = std::move(u);
+		vtable = detail::task_access::get_vtable(t);
+	}
 }
 
 template <typename T>
