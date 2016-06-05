@@ -76,4 +76,4 @@ result<void> value() noexcept;
 
 #include "detail/result_impl.h"
 
-#endif // AWAIT_TASK_H
+#endif // AWAIT_RESULT_H
