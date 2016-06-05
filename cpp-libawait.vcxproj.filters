@@ -60,7 +60,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="await\result.cpp" />
     <ClCompile Include="await\detail\simple_commands.cpp">
       <Filter>detail</Filter>
     </ClCompile>
@@ -77,6 +76,9 @@
       <Filter>detail</Filter>
     </ClCompile>
     <ClCompile Include="await\detail\stream.cpp">
+      <Filter>detail</Filter>
+    </ClCompile>
+    <ClCompile Include="await\detail\result.cpp">
       <Filter>detail</Filter>
     </ClCompile>
   </ItemGroup>

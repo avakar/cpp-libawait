@@ -43,13 +43,13 @@
     <ClInclude Include="await\timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="await\detail\result.cpp" />
     <ClCompile Include="await\detail\simple_commands.cpp" />
     <ClCompile Include="await\detail\stream.cpp" />
     <ClCompile Include="await\detail\win32_error.cpp" />
     <ClCompile Include="await\detail\win32_run.cpp" />
     <ClCompile Include="await\detail\win32_tcp.cpp" />
     <ClCompile Include="await\detail\win32_timer.cpp" />
-    <ClCompile Include="await\result.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6371A442-C029-439A-87D1-FA9E50D24ABB}</ProjectGuid>
