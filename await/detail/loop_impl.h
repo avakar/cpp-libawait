@@ -138,9 +138,9 @@ aw::task<void> aw::loop(Ctx c, StartF && start, UpdateF && update)
 		detail::task_completion<void> * m_sink;
 	};
 
-	task<T> task = start(c);
 	for (;;)
 	{
+		task<T> task = start(c);
 		if (task.empty())
 			return aw::value();
 		if (detail::has_command(task))
@@ -151,6 +151,5 @@ aw::task<void> aw::loop(Ctx c, StartF && start, UpdateF && update)
 			return r.exception();
 
 		detail::invoke_loop_update<T>::invoke(c, update, r);
-		task = start(c);
 	}
 }
