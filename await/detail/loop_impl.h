@@ -144,12 +144,13 @@ aw::task<void> aw::loop(Ctx c, StartF && start, UpdateF && update)
 		if (task.empty())
 			return aw::value();
 		if (detail::has_command(task))
-			return detail::make_command<cmd>(std::move(task), std::move(c), std::move(start), std::move(update));
+			return detail::make_command<cmd>(task, std::move(c), std::move(start), std::move(update));
 
 		result<T> & r = detail::get_result(task);
 		if (r.has_exception())
 			return r.exception();
 
 		detail::invoke_loop_update<T>::invoke(c, update, r);
+		task = start(c);
 	}
 }
