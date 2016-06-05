@@ -53,6 +53,9 @@
     <ClInclude Include="await\detail\result_kind.h">
       <Filter>detail</Filter>
     </ClInclude>
+    <ClInclude Include="await\detail\loop_impl.h">
+      <Filter>detail</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="detail">

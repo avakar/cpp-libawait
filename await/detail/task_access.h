@@ -36,6 +36,12 @@ struct task_access
 };
 
 template <typename T>
+bool has_exception(task<T> const & t);
+
+template <typename T>
+std::exception_ptr fetch_exception(task<T> & t);
+
+template <typename T>
 bool has_result(task<T> const & t);
 
 template <typename T>

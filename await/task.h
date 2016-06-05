@@ -54,9 +54,16 @@ private:
 	friend detail::task_access;
 };
 
+template <typename F>
+task<void> loop(F && f);
+
+template <typename Ctx, typename StartF, typename UpdateF>
+task<void> loop(Ctx c, StartF && start, UpdateF && update);
+
 } // namespace aw
 
 #include "detail/task_impl.h"
 #include "detail/then_impl.h"
+#include "detail/loop_impl.h"
 
 #endif // AWAIT_TASK_H

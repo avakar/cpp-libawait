@@ -33,6 +33,19 @@ constexpr size_t aw::detail::task_access::storage_size()
 }
 
 template <typename T>
+bool aw::detail::has_exception(task<T> const & t)
+{
+	return has_result(t) && get_result(t).has_exception();
+}
+
+template <typename T>
+std::exception_ptr aw::detail::fetch_exception(task<T> & t)
+{
+	assert(has_exception(t));
+	return fetch_result(t).exception();
+}
+
+template <typename T>
 bool aw::detail::has_result(task<T> const & t)
 {
 	auto vtable = task_access::get_vtable(t);
