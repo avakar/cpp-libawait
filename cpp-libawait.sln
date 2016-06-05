@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libawait-test", "test\libaw
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cppmutest", "test\mutest\cppmutest.vcxproj", "{78D561F7-4DA5-4545-A6AA-B34EA2B71216}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libsingleton", "singleton\libsingleton.vcxproj", "{D5492C0B-72CC-49C5-8621-D0C9DFDC0E16}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -43,6 +45,14 @@ Global
 		{78D561F7-4DA5-4545-A6AA-B34EA2B71216}.Release|x64.ActiveCfg = Release|Win32
 		{78D561F7-4DA5-4545-A6AA-B34EA2B71216}.Release|x86.ActiveCfg = Release|Win32
 		{78D561F7-4DA5-4545-A6AA-B34EA2B71216}.Release|x86.Build.0 = Release|Win32
+		{D5492C0B-72CC-49C5-8621-D0C9DFDC0E16}.Debug|x64.ActiveCfg = Debug|x64
+		{D5492C0B-72CC-49C5-8621-D0C9DFDC0E16}.Debug|x64.Build.0 = Debug|x64
+		{D5492C0B-72CC-49C5-8621-D0C9DFDC0E16}.Debug|x86.ActiveCfg = Debug|Win32
+		{D5492C0B-72CC-49C5-8621-D0C9DFDC0E16}.Debug|x86.Build.0 = Debug|Win32
+		{D5492C0B-72CC-49C5-8621-D0C9DFDC0E16}.Release|x64.ActiveCfg = Release|x64
+		{D5492C0B-72CC-49C5-8621-D0C9DFDC0E16}.Release|x64.Build.0 = Release|x64
+		{D5492C0B-72CC-49C5-8621-D0C9DFDC0E16}.Release|x86.ActiveCfg = Release|Win32
+		{D5492C0B-72CC-49C5-8621-D0C9DFDC0E16}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

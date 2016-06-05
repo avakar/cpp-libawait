@@ -44,6 +44,11 @@
     <ClInclude Include="await\detail\task_traits.h">
       <Filter>detail</Filter>
     </ClInclude>
+    <ClInclude Include="await\tcp.h" />
+    <ClInclude Include="await\detail\intrusive_list.h">
+      <Filter>detail</Filter>
+    </ClInclude>
+    <ClInclude Include="await\stream.h" />
     <ClInclude Include="await\coroutine.h" />
     <ClInclude Include="await\detail\result_kind.h">
       <Filter>detail</Filter>
@@ -66,6 +71,12 @@
       <Filter>detail</Filter>
     </ClCompile>
     <ClCompile Include="await\detail\win32_error.cpp">
+      <Filter>detail</Filter>
+    </ClCompile>
+    <ClCompile Include="await\detail\win32_tcp.cpp">
+      <Filter>detail</Filter>
+    </ClCompile>
+    <ClCompile Include="await\detail\stream.cpp">
       <Filter>detail</Filter>
     </ClCompile>
   </ItemGroup>

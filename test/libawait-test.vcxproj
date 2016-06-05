@@ -145,6 +145,9 @@
     <ProjectReference Include="..\cpp-libawait.vcxproj">
       <Project>{6371a442-c029-439a-87d1-fa9e50d24abb}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\singleton\libsingleton.vcxproj">
+      <Project>{d5492c0b-72cc-49c5-8621-d0c9dfdc0e16}</Project>
+    </ProjectReference>
     <ProjectReference Include="mutest\cppmutest.vcxproj">
       <Project>{78d561f7-4da5-4545-a6aa-b34ea2b71216}</Project>
     </ProjectReference>
@@ -152,6 +155,7 @@
   <ItemGroup>
     <ClCompile Include="result.cpp" />
     <ClCompile Include="task.cpp" />
+    <ClCompile Include="tcp.cpp" />
     <ClCompile Include="then.cpp" />
     <ClCompile Include="timer.cpp" />
   </ItemGroup>
