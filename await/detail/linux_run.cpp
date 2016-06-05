@@ -5,6 +5,12 @@
 #include <poll.h>
 #include <unistd.h>
 
+static_assert(POLLIN == EPOLLIN, "POLL and EPOLL constants diverge");
+static_assert(POLLPRI == EPOLLPRI, "POLL and EPOLL constants diverge");
+static_assert(POLLOUT == EPOLLOUT, "POLL and EPOLL constants diverge");
+static_assert(POLLERR == EPOLLERR, "POLL and EPOLL constants diverge");
+static_assert(POLLHUP == EPOLLHUP, "POLL and EPOLL constants diverge");
+
 aw::result<void> aw::detail::try_run_impl(task<void> && t)
 {
 	assert(!t.empty());
