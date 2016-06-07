@@ -155,17 +155,23 @@ private:
 	aw::detail::scheduler::sleeper_node * m_sleeper_node;
 };
 
-struct ssocket
+struct tcp_socket
 	: aw::stream
 {
-	ssocket(std::shared_ptr<winsock_guard> wg, SOCKET socket)
+	tcp_socket(std::shared_ptr<winsock_guard> wg, SOCKET socket)
 		: m_winsock(std::move(wg)), m_socket(socket)
 	{
 	}
 
-	~ssocket()
+	tcp_socket(tcp_socket && o)
+		: m_winsock(o.m_winsock), m_socket(o.m_socket)
 	{
-		if (m_socket)
+		o.m_socket = INVALID_SOCKET;
+	}
+
+	~tcp_socket()
+	{
+		if (m_socket != INVALID_SOCKET)
 			closesocket(m_socket);
 	}
 
@@ -231,7 +237,7 @@ struct connect_impl
 		if (WSAEventSelect(m_s, 0, 0) == SOCKET_ERROR)
 			return std::make_exception_ptr(aw::detail::win32_error(WSAGetLastError()));
 
-		std::shared_ptr<ssocket> ss = std::make_shared<ssocket>(m_winsock, m_s);
+		std::shared_ptr<tcp_socket> ss = std::make_shared<tcp_socket>(m_winsock, m_s);
 		m_s = 0;
 		return aw::value(ss);
 	}
@@ -321,6 +327,201 @@ aw::task<std::shared_ptr<aw::stream>> aw::tcp_connect(char const * host, uint16_
 			return std::make_exception_ptr(detail::win32_error(r));
 
 		return aw::detail::make_command<connect_impl>(std::move(imp));
+	}
+	catch (...)
+	{
+		return std::current_exception();
+	}
+}
+
+template <int af>
+struct bind_all_address;
+
+template <>
+struct bind_all_address<AF_INET>
+{
+	typedef sockaddr_in addr_type;
+	static void init(addr_type & addr, uint16_t port)
+	{
+		addr.sin_family = AF_INET;
+		addr.sin_port = htons(port);
+	}
+};
+
+template <>
+struct bind_all_address<AF_INET6>
+{
+	typedef sockaddr_in6 addr_type;
+	static void init(addr_type & addr, uint16_t port)
+	{
+		addr.sin6_family = AF_INET6;
+		addr.sin6_port = htons(port);
+	}
+};
+
+struct socket_guard
+{
+	explicit socket_guard(SOCKET sock)
+		: m_sock(sock)
+	{
+	}
+
+	socket_guard(socket_guard && o)
+		: m_sock(o.m_sock)
+	{
+		o.m_sock = INVALID_SOCKET;
+	}
+
+	~socket_guard()
+	{
+		if (m_sock != INVALID_SOCKET)
+			closesocket(m_sock);
+	}
+
+	operator SOCKET() const
+	{
+		return m_sock;
+	}
+
+private:
+	SOCKET m_sock;
+};
+
+struct win32_handle
+{
+	explicit win32_handle(HANDLE h)
+		: m_h(h)
+	{
+	}
+
+	win32_handle(win32_handle && o)
+		: m_h(o.m_h)
+	{
+		o.m_h = INVALID_HANDLE_VALUE;
+	}
+
+	~win32_handle()
+	{
+		if (m_h != INVALID_HANDLE_VALUE)
+			CloseHandle(m_h);
+	}
+
+	operator HANDLE() const
+	{
+		return m_h;
+	}
+
+private:
+	HANDLE m_h;
+};
+
+namespace aw {
+namespace detail {
+
+task<void> win32_wait_handle(HANDLE h)
+{
+	DWORD err = WaitForSingleObject(h, 0);
+	if (err == WAIT_OBJECT_0)
+		return aw::value();
+
+	if (err != WAIT_TIMEOUT)
+		return std::make_exception_ptr(aw::detail::win32_error(err));
+
+	struct cmd
+		: private scheduler::completion_sink
+	{
+		typedef void value_type;
+
+		explicit cmd(HANDLE h)
+			: m_h(h), m_sink(nullptr)
+		{
+		}
+
+		task<void> start(scheduler & sch, task_completion<void> & sink)
+		{
+			m_sink = &sink;
+			sch.add_handle(m_h, *this);
+			return nullptr;
+		}
+
+	private:
+		completion_result on_completion(scheduler & sch) override
+		{
+			m_sink->on_completion(sch, aw::value());
+			return completion_result::finish;
+		}
+
+		HANDLE m_h;
+		task_completion<void> * m_sink;
+	};
+
+	return aw::detail::make_command<cmd>(h);
+}
+
+}
+}
+
+template <int af>
+static aw::task<void> listen_one(uint16_t port, std::function<void(std::shared_ptr<aw::stream> peer)> const & accept_fn)
+{
+	std::shared_ptr<winsock_guard> winsock = g_winsock.get();
+
+	SOCKET sock = WSASocket(af, SOCK_STREAM, IPPROTO_TCP, nullptr, 0, WSA_FLAG_OVERLAPPED | WSA_FLAG_NO_HANDLE_INHERIT);
+	if (sock == INVALID_SOCKET)
+		return std::make_exception_ptr(aw::detail::win32_error(WSAGetLastError()));
+	socket_guard sg(sock);
+
+	HANDLE ev = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+	if (!ev)
+		return std::make_exception_ptr(aw::detail::win32_error(GetLastError()));
+	win32_handle eg(ev);
+
+	int r = WSAEventSelect(sock, ev, FD_ACCEPT);
+	if (r == SOCKET_ERROR)
+		return std::make_exception_ptr(aw::detail::win32_error(WSAGetLastError()));
+
+	typename bind_all_address<af>::addr_type addr = {};
+	bind_all_address<af>::init(addr, port);
+	if (bind(sock, reinterpret_cast<sockaddr const *>(&addr), sizeof addr) == SOCKET_ERROR)
+		return std::make_exception_ptr(aw::detail::win32_error(WSAGetLastError()));
+
+	if (listen(sock, SOMAXCONN) == SOCKET_ERROR)
+		return std::make_exception_ptr(aw::detail::win32_error(WSAGetLastError()));
+
+	struct Ctx
+	{
+		std::shared_ptr<winsock_guard> wg;
+		socket_guard sock;
+		win32_handle event;
+	};
+
+	return aw::loop(Ctx{ std::move(winsock), std::move(sg), std::move(eg) }, [](Ctx & ctx) {
+		return aw::detail::win32_wait_handle(ctx.event);
+	}, [accept_fn](Ctx & ctx) {
+		WSANETWORKEVENTS ne;
+		if (WSAEnumNetworkEvents(ctx.sock, ctx.event, &ne) == SOCKET_ERROR)
+			throw aw::detail::win32_error(WSAGetLastError());
+
+		if (ne.lNetworkEvents & FD_ACCEPT)
+		{
+			int err = ne.iErrorCode[FD_ACCEPT_BIT];
+			if (err != 0)
+				throw aw::detail::win32_error(err);
+			SOCKET sock = accept(ctx.sock, nullptr, nullptr);
+			if (sock == INVALID_SOCKET)
+				throw aw::detail::win32_error(WSAGetLastError());
+
+			accept_fn(std::make_shared<tcp_socket>(tcp_socket(ctx.wg, sock)));
+		}
+	});
+}
+
+
+aw::task<void> aw::tcp_listen(uint16_t port, std::function<void(std::shared_ptr<stream> peer)> const & accept) noexcept
+{
+	try
+	{
+		return listen_one<AF_INET>(port, accept);
 	}
 	catch (...)
 	{
