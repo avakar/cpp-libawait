@@ -1,30 +1,24 @@
 #include "command.h"
 #include "task_traits.h"
 
-namespace aw {
-namespace detail {
-
 template <typename T, typename F>
-auto continue_with(result<T> && r, F && f) -> decltype(std::declval<F>()(std::declval<result<T>>()));
-
-}
-}
-
-template <typename T, typename F>
-typename aw::detail::then_traits<T, F>::task_type aw::detail::then_traits<T, F>::invoke(result<T> && t, F && f)
+auto aw::detail::then_traits<T, F>::invoke(result<T> && t, F && f) noexcept
+	-> return_type
 {
-	return f(std::move(t.value()));
+	return invoke_and_taskify(std::move(f), std::move(t.value()));
 }
 
 template <typename F>
-typename aw::detail::then_traits<void, F>::task_type aw::detail::then_traits<void, F>::invoke(result<void> && t, F && f)
+auto aw::detail::then_traits<void, F>::invoke(result<void> && t, F && f) noexcept
+	-> return_type
 {
-	return f();
+	return invoke_and_taskify(std::move(f));
 }
 
 template <typename T>
 template <typename F>
-typename aw::detail::then_traits<T, F>::task_type aw::task<T>::then(F && f)
+auto aw::task<T>::then(F && f)
+	-> typename aw::detail::then_traits<T, F>::return_type
 {
 	assert(m_vtable);
 
@@ -35,19 +29,11 @@ typename aw::detail::then_traits<T, F>::task_type aw::task<T>::then(F && f)
 		{
 		}
 
-		typename aw::detail::then_traits<T, F>::task_type operator()(result<T> && r)
+		typename aw::detail::then_traits<T, F>::return_type operator()(result<T> && r)
 		{
 			if (r.has_exception())
 				return std::move(r.exception());
-
-			try
-			{
-				return detail::then_traits<T, F>::invoke(std::move(r), std::move(m_f));
-			}
-			catch (...)
-			{
-				return std::current_exception();
-			}
+			return detail::then_traits<T, F>::invoke(std::move(r), std::move(m_f));
 		}
 
 		F m_f;
@@ -56,29 +42,15 @@ typename aw::detail::then_traits<T, F>::task_type aw::task<T>::then(F && f)
 	return this->continue_with(cont(std::move(f)));
 }
 
-template <typename T, typename F>
-auto aw::detail::continue_with(result<T> && r, F && f) -> decltype(std::declval<F>()(std::declval<result<T>>()))
-{
-	try
-	{
-		return f(std::move(r));
-	}
-	catch (...)
-	{
-		return std::current_exception();
-	}
-}
-
 template <typename T>
 template <typename F>
-decltype(std::declval<F>()(std::declval<aw::result<T>>())) aw::task<T>::continue_with(F && f)
+auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits<T, F>::return_type
 {
+	typedef typename detail::invoke_and_taskify_traits<F, result<T>>::value_type U;
+
 	assert(m_vtable != nullptr);
 	if (m_vtable->start == nullptr)
-		return detail::continue_with(detail::fetch_result(*this), std::move(f));
-
-	typedef decltype(std::declval<F>()(std::declval<result<T>>())) task_U;
-	typedef typename detail::task_traits<task_U>::value_type U;
+		return detail::invoke_and_taskify(std::move(f), detail::fetch_result(*this));
 
 	struct impl
 		: private detail::task_completion<T>
@@ -98,7 +70,7 @@ decltype(std::declval<F>()(std::declval<aw::result<T>>())) aw::task<T>::continue
 				return nullptr;
 			}
 
-			return detail::continue_with(detail::fetch_result(m_task), std::move(m_f));
+			return detail::invoke_and_taskify(std::move(m_f), detail::fetch_result(m_task));
 		}
 
 	private:

@@ -7,25 +7,23 @@ namespace aw {
 namespace detail {
 
 template <typename T, typename F>
+struct continue_with_traits
+{
+	typedef typename invoke_and_taskify_traits<F, result<T>>::task_type return_type;
+};
+
+template <typename T, typename F>
 struct then_traits
 {
-	typedef decltype(std::declval<F>()(std::declval<T>())) return_type;
-
-	typedef typename task_traits<return_type>::value_type result_type;
-	typedef task<result_type> task_type;
-
-	static task_type invoke(result<T> && t, F && f);
+	typedef typename invoke_and_taskify_traits<F, T>::task_type return_type;
+	static return_type invoke(result<T> && t, F && f) noexcept;
 };
 
 template <typename F>
 struct then_traits<void, F>
 {
-	typedef decltype(std::declval<F>()()) return_type;
-
-	typedef typename task_traits<return_type>::value_type result_type;
-	typedef task<result_type> task_type;
-
-	static task_type invoke(result<void> && t, F && f);
+	typedef typename invoke_and_taskify_traits<F>::task_type return_type;
+	static return_type invoke(result<void> && t, F && f) noexcept;
 };
 
 }

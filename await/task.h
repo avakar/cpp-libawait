@@ -36,16 +36,18 @@ struct task
 	bool empty() const;
 	explicit operator bool() const;
 
+	template <typename F>
+	auto continue_with(F && f)
+		-> typename detail::continue_with_traits<T, F>::return_type;
+
+	template <typename F>
+	auto then(F && f)
+		-> typename detail::then_traits<T, F>::return_type;
+
 	task<void> ignore_result();
 
 	template <typename... P>
 	task<T> hold(P &&... p);
-
-	template <typename F>
-	typename detail::then_traits<T, F>::task_type then(F && f);
-
-	template <typename F>
-	decltype(std::declval<F>()(std::declval<result<T>>())) continue_with(F && f);
 
 private:
 	detail::task_vtable<T> const * m_vtable;
