@@ -46,6 +46,7 @@
   <ItemGroup>
     <ClCompile Include="await\detail\result.cpp" />
     <ClCompile Include="await\detail\stream.cpp" />
+    <ClCompile Include="await\detail\task.cpp" />
     <ClCompile Include="await\detail\win32_error.cpp" />
     <ClCompile Include="await\detail\win32_run.cpp" />
     <ClCompile Include="await\detail\win32_tcp.cpp" />

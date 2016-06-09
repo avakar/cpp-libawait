@@ -60,6 +60,8 @@ task<void> loop(F && f);
 template <typename Ctx, typename StartF, typename UpdateF>
 task<void> loop(Ctx c, StartF && start, UpdateF && update);
 
+task<void> postpone();
+
 } // namespace aw
 
 #include "detail/task_impl.h"

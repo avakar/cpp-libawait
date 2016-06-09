@@ -215,3 +215,39 @@ TEST("aw::task<void> should support exceptions")
 
 	chk counter == 0;
 }
+
+TEST("aw::postpone should complete into void value")
+{
+	aw::task<void> t = aw::postpone();
+	aw::run(std::move(t));
+}
+
+TEST("aw::value should complete synchronously")
+{
+	int completed = 0;
+
+	aw::task<void> t = aw::value();
+	t = t.then([&completed]() -> aw::task<void> {
+		++completed;
+		return aw::value();
+	});
+
+	chk completed == 1;
+	aw::run(std::move(t));
+	chk completed == 1;
+}
+
+TEST("aw::postpone should not complete synchronously")
+{
+	int completed = 0;
+
+	aw::task<void> t = aw::postpone();
+	t = t.then([&completed]() -> aw::task<void> {
+		++completed;
+		return aw::value();
+	});
+
+	chk completed == 0;
+	aw::run(std::move(t));
+	chk completed == 1;
+}
