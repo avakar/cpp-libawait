@@ -8,6 +8,9 @@ namespace detail {
 template <typename R>
 struct invoke_and_taskify_impl;
 
+template <>
+struct invoke_and_taskify_impl<void>;
+
 }
 }
 

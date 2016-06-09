@@ -9,6 +9,7 @@ SRCS= \
 	await/detail/linux_timer.cpp \
 	await/detail/result.cpp \
 	await/detail/stream.cpp \
+	await/detail/task.cpp \
 	test/result.cpp \
 	test/then.cpp \
 	test/timer.cpp \
