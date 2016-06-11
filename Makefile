@@ -10,11 +10,11 @@ SRCS= \
 	await/detail/result.cpp \
 	await/detail/stream.cpp \
 	await/detail/task.cpp \
-	test/result.cpp \
-	test/then.cpp \
-	test/timer.cpp \
-	test/tcp.cpp \
-	test/task.cpp
+	test/result_test.cpp \
+	test/then_test.cpp \
+	test/timer_test.cpp \
+	test/tcp_test.cpp \
+	test/task_test.cpp
 
 all:
 	$(CXX) $(SRCS) -I . -I test/mutest -g -o libawait-test -std=c++11

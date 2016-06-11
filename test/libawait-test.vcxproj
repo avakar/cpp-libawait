@@ -153,11 +153,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="result.cpp" />
-    <ClCompile Include="task.cpp" />
-    <ClCompile Include="tcp.cpp" />
-    <ClCompile Include="then.cpp" />
-    <ClCompile Include="timer.cpp" />
+    <ClCompile Include="result_test.cpp" />
+    <ClCompile Include="task_test.cpp" />
+    <ClCompile Include="tcp_test.cpp" />
+    <ClCompile Include="then_test.cpp" />
+    <ClCompile Include="timer_test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

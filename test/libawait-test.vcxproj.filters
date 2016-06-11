@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="task.cpp" />
-    <ClCompile Include="result.cpp" />
-    <ClCompile Include="then.cpp" />
-    <ClCompile Include="timer.cpp" />
-    <ClCompile Include="tcp.cpp" />
+    <ClCompile Include="result_test.cpp" />
+    <ClCompile Include="task_test.cpp" />
+    <ClCompile Include="tcp_test.cpp" />
+    <ClCompile Include="then_test.cpp" />
+    <ClCompile Include="timer_test.cpp" />
   </ItemGroup>
 </Project>
