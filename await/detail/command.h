@@ -26,7 +26,11 @@ struct make_command_impl<true>
 		{
 			static aw::task<T> start(void * self, detail::scheduler & sch, detail::task_completion<T> & sink)
 			{
-				return static_cast<I *>(self)->start(sch, sink);
+				I * ss = static_cast<I *>(self);
+				aw::task<T> r = ss->start(sch, sink);
+				if (!r.empty())
+					ss->~I();
+				return r;
 			}
 
 			static void move_to(void * self, void * dst)
@@ -66,7 +70,11 @@ struct make_command_impl<false>
 		{
 			static aw::task<T> start(void * self, detail::scheduler & sch, detail::task_completion<T> & sink)
 			{
-				return (*static_cast<I **>(self))->start(sch, sink);
+				I ** ss = static_cast<I **>(self);
+				aw::task<T> r = (*ss)->start(sch, sink);
+				if (!r.empty())
+					delete *ss;
+				return r;
 			}
 
 			static void move_to(void * self, void * dst)

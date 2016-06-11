@@ -165,6 +165,7 @@ bool aw::detail::start_command(task<T> & t, scheduler & sch, task_completion<T> 
 		if (u.empty())
 			return true;
 
+		task_access::set_vtable(t, static_cast<detail::task_vtable<T> const *>(nullptr));
 		t = std::move(u);
 		vtable = detail::task_access::get_vtable(t);
 	}
