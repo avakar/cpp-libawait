@@ -56,6 +56,7 @@
     <ClInclude Include="await\detail\loop_impl.h">
       <Filter>detail</Filter>
     </ClInclude>
+    <ClInclude Include="await\cancel.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="detail">

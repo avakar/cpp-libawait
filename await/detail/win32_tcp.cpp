@@ -1,4 +1,5 @@
 #include "../tcp.h"
+#include "../cancel.h"
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <singleton/singleton.h>
@@ -51,6 +52,11 @@ struct sock_read_command
 	sock_read_command(SOCKET sock, uint8_t * buf, size_t size)
 		: m_sock(sock), m_buf(buf), m_size(size), m_ov()
 	{
+	}
+
+	aw::result<size_t> dismiss()
+	{
+		return std::make_exception_ptr(aw::task_aborted());
 	}
 
 	aw::task<value_type> start(aw::detail::scheduler & sch, aw::detail::task_completion<value_type> & sink)
@@ -107,6 +113,11 @@ struct sock_write_command
 	sock_write_command(SOCKET sock, uint8_t const * buf, size_t size)
 		: m_sock(sock), m_buf(buf), m_size(size), m_ov()
 	{
+	}
+
+	aw::result<size_t> dismiss()
+	{
+		return std::make_exception_ptr(aw::task_aborted());
 	}
 
 	aw::task<value_type> start(aw::detail::scheduler & sch, aw::detail::task_completion<value_type> & sink)
@@ -223,6 +234,11 @@ struct connect_impl
 		std::swap(m_s, o.m_s);
 		std::swap(m_h, o.m_h);
 		return *this;
+	}
+
+	aw::result<std::shared_ptr<aw::stream>> dismiss()
+	{
+		return std::make_exception_ptr(aw::task_aborted());
 	}
 
 	aw::task<value_type> start(aw::detail::scheduler & sch, aw::detail::task_completion<value_type> & sink)
@@ -435,6 +451,11 @@ task<void> win32_wait_handle(HANDLE h)
 		explicit cmd(HANDLE h)
 			: m_h(h), m_sink(nullptr)
 		{
+		}
+
+		result<void> dismiss()
+		{
+			return std::make_exception_ptr(aw::task_aborted());
 		}
 
 		task<void> start(scheduler & sch, task_completion<void> & sink)

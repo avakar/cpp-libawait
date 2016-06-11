@@ -102,6 +102,20 @@ aw::task<void> aw::loop(Ctx c, StartF && start, UpdateF && update)
 		{
 		}
 
+		result<void> dismiss()
+		{
+			for (;;)
+			{
+				result<T> r = detail::dismiss_task(m_task);
+				if (r.has_exception())
+					return r.exception();
+				detail::invoke_loop_update<T>::invoke(m_ctx, m_update, r);
+				m_task = m_start(m_ctx);
+				if (m_task.empty())
+					return aw::value();
+			}
+		}
+
 		task<void> start(detail::scheduler & sch, detail::task_completion<void> & sink)
 		{
 			for (;;)
@@ -125,6 +139,7 @@ aw::task<void> aw::loop(Ctx c, StartF && start, UpdateF && update)
 	private:
 		void on_completion(detail::scheduler & sch, task<T> && t) override
 		{
+			detail::mark_complete(m_task);
 			m_task = std::move(t);
 			task<void> u = this->start(sch, *m_sink);
 			if (!u.empty())

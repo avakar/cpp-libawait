@@ -82,7 +82,7 @@ aw::detail::task_vtable<T> const * aw::detail::task_access::get_vtable(task<T> c
 }
 
 template <typename T>
-void aw::detail::task_access::set_vtable(task<T> & t, task_vtable<T> const * vtable)
+void aw::detail::task_access::set_vtable(task<T> & t, typename identity<task_vtable<T> const *>::type vtable)
 {
 	t.m_vtable = vtable;
 }
@@ -165,10 +165,36 @@ bool aw::detail::start_command(task<T> & t, scheduler & sch, task_completion<T> 
 		if (u.empty())
 			return true;
 
-		task_access::set_vtable(t, static_cast<detail::task_vtable<T> const *>(nullptr));
+		task_access::set_vtable(t, nullptr);
 		t = std::move(u);
 		vtable = detail::task_access::get_vtable(t);
 	}
+}
+
+template <typename T>
+aw::result<T> aw::detail::dismiss_task(task<T> & t)
+{
+	assert(!t.empty());
+
+	task_vtable<T> const * vtable = task_access::get_vtable(t);
+	void * storage = task_access::storage(t);
+
+	result<T> r = vtable->dismiss(storage);
+	vtable->destroy(storage);
+	task_access::set_vtable(t, nullptr);
+	return r;
+}
+
+template <typename T>
+void aw::detail::mark_complete(task<T> & t)
+{
+	assert(!t.empty());
+
+	task_vtable<T> const * vtable = task_access::get_vtable(t);
+	void * storage = task_access::storage(t);
+
+	vtable->destroy(storage);
+	task_access::set_vtable(t, nullptr);
 }
 
 template <typename T>
@@ -240,6 +266,7 @@ void aw::task<T>::clear()
 {
 	if (m_vtable)
 	{
+		(void)m_vtable->dismiss(&m_storage);
 		m_vtable->destroy(&m_storage);
 		m_vtable = nullptr;
 	}

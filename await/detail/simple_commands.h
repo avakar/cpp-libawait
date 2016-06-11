@@ -18,6 +18,12 @@ task_vtable<T> const * result_vtable()
 			o->~result();
 		}
 
+		static result<T> dismiss(void * self)
+		{
+			result<T> * o = reinterpret_cast<result<T> *>(self);
+			return std::move(*o);
+		}
+
 		static void destroy(void * self)
 		{
 			result<T> * o = reinterpret_cast<result<T> *>(self);
@@ -26,9 +32,10 @@ task_vtable<T> const * result_vtable()
 	};
 
 	static task_vtable<T> const vtable = {
-		nullptr,
 		&impl::move_to,
 		&impl::destroy,
+		&impl::dismiss,
+		nullptr,
 	};
 
 	return &vtable;

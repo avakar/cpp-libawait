@@ -11,13 +11,19 @@ struct task;
 
 namespace detail {
 
+template <typename T>
+struct identity
+{
+	typedef T type;
+};
+
 struct task_access
 {
 	template <typename T>
 	static task_vtable<T> const * get_vtable(task<T> const & t);
 
 	template <typename T>
-	static void set_vtable(task<T> & t, task_vtable<T> const * vtable);
+	static void set_vtable(task<T> & t, typename identity<task_vtable<T> const *>::type vtable);
 
 	template <typename T>
 	static void * storage(task<T> & t);
@@ -49,6 +55,12 @@ bool has_command(task<T> const & t);
 
 template <typename T>
 bool start_command(task<T> & t, scheduler & sch, task_completion<T> & sink);
+
+template <typename T>
+result<T> dismiss_task(task<T> & t);
+
+template <typename T>
+void mark_complete(task<T> & t);
 
 }
 }

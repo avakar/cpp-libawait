@@ -1,4 +1,5 @@
 #include "../timer.h"
+#include "../cancel.h"
 #include "command.h"
 #include "win32_scheduler.h"
 #include "win32_error.h"
@@ -31,6 +32,11 @@ aw::task<void> aw::wait_ms(int64_t ms)
 		{
 			if (m_h)
 				CloseHandle(m_h);
+		}
+
+		result<void> dismiss()
+		{
+			return std::make_exception_ptr(aw::task_aborted());
 		}
 
 		impl(impl && o)

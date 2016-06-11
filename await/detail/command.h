@@ -27,10 +27,7 @@ struct make_command_impl<true>
 			static aw::task<T> start(void * self, detail::scheduler & sch, detail::task_completion<T> & sink)
 			{
 				I * ss = static_cast<I *>(self);
-				aw::task<T> r = ss->start(sch, sink);
-				if (!r.empty())
-					ss->~I();
-				return r;
+				return ss->start(sch, sink);
 			}
 
 			static void move_to(void * self, void * dst)
@@ -40,16 +37,24 @@ struct make_command_impl<true>
 				ss->~I();
 			}
 
+			static result<T> dismiss(void * self)
+			{
+				I * ss = static_cast<I *>(self);
+				return ss->dismiss();
+			}
+
 			static void destroy(void * self)
 			{
-				static_cast<I *>(self)->~I();
+				I * ss = static_cast<I *>(self);
+				ss->~I();
 			}
 		};
 
 		static detail::task_vtable<T> const vtable = {
-			&impl::start,
 			&impl::move_to,
 			&impl::destroy,
+			&impl::dismiss,
+			&impl::start,
 		};
 
 		new(storage) I(std::forward<P>(p)...);
@@ -83,6 +88,12 @@ struct make_command_impl<false>
 				new(dst) I *(*ss);
 			}
 
+			static result<T> dismiss(void * self)
+			{
+				I ** ss = static_cast<I **>(self);
+				return (*ss)->dismiss();
+			}
+
 			static void destroy(void * self)
 			{
 				I ** ss = static_cast<I **>(self);
@@ -91,9 +102,10 @@ struct make_command_impl<false>
 		};
 
 		static detail::task_vtable<T> const vtable = {
-			&impl::start,
 			&impl::move_to,
 			&impl::destroy,
+			&impl::dismiss,
+			&impl::start,
 		};
 
 		I * ss = new I(std::forward<P>(p)...);

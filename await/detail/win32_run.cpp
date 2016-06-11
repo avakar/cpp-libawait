@@ -55,6 +55,7 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 			assert(&sch == this);
 			(void)sch;
 
+			detail::mark_complete(m_task);
 			m_task = std::move(t);
 			m_updated = true;
 		}

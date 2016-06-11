@@ -68,6 +68,23 @@ TEST("continue_with should work postponed")
 	chk aw::run(std::move(u)) == 45;
 }
 
+TEST("continue_with should be called even during destruction")
+{
+	int called = 0;
+
+	{
+		aw::task<void> t = aw::postpone().continue_with([&called](aw::result<void> r) {
+			chk r.has_exception();
+			++called;
+		});
+
+		(void)t;
+		chk called == 0;
+	}
+
+	chk called == 1;
+}
+
 TEST("aw::task::then should take callbacks returning value")
 {
 	aw::task<int> t = aw::value(42);
