@@ -82,19 +82,13 @@ aw::detail::task_vtable<T> const * aw::detail::task_access::get_vtable(task<T> c
 }
 
 template <typename T>
-void aw::detail::task_access::set_vtable(task<T> & t, typename identity<task_vtable<T> const *>::type vtable)
+void aw::detail::task_access::set_vtable(task<T> & t, task_vtable<T> const * vtable)
 {
 	t.m_vtable = vtable;
 }
 
 template <typename T>
 void * aw::detail::task_access::storage(task<T> & t)
-{
-	return &t.m_storage;
-}
-
-template <typename T>
-void const * aw::detail::task_access::storage(task<T> const & t)
 {
 	return &t.m_storage;
 }
