@@ -8,6 +8,7 @@
 #include "linux_error.h"
 #include "linux_fd_task.h"
 #include "linux_scheduler.h"
+#include "../cancel.h"
 
 namespace {
 
@@ -36,6 +37,11 @@ struct poll_op_cmd
 	poll_op_cmd(F && f, int fd, int events)
 		: m_f(std::move(f)), m_fd(fd), m_events(events), m_sink(nullptr)
 	{
+	}
+
+	aw::result<value_type> dismiss()
+	{
+		return std::make_exception_ptr(aw::task_aborted());
 	}
 
 	aw::task<value_type> start(aw::detail::scheduler & sch,

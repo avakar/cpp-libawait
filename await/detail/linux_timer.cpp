@@ -1,4 +1,5 @@
 #include "../timer.h"
+#include "../cancel.h"
 #include "command.h"
 #include "linux_scheduler.h"
 #include <unistd.h>
@@ -40,6 +41,11 @@ aw::task<void> aw::wait_ms(int64_t ms)
 			m_fd = o.m_fd;
 			o.m_fd = -1;
 			return *this;
+		}
+
+		result<void> dismiss()
+		{
+			return std::make_exception_ptr(aw::task_aborted());
 		}
 
 		task<void> start(detail::scheduler & sch, detail::task_completion<void> & sink)

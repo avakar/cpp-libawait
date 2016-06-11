@@ -1,6 +1,7 @@
 #include "linux_scheduler.h"
 #include "linux_fd_task.h"
 #include "linux_error.h"
+#include "../cancel.h"
 #include <poll.h>
 
 aw::task<short> aw::detail::linux_fd_task(int fd, short events)
@@ -13,6 +14,11 @@ aw::task<short> aw::detail::linux_fd_task(int fd, short events)
 		impl(int fd, short events)
 			: m_fd(fd), m_events(events), m_sink(nullptr)
 		{
+		}
+
+		aw::result<short> dismiss()
+		{
+			return std::make_exception_ptr(aw::task_aborted());
 		}
 
 		aw::task<short> start(scheduler & sch, task_completion<short> & sink)
