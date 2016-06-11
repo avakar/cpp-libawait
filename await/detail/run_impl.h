@@ -16,7 +16,7 @@ result<T> try_run_impl(task<T> && t)
 		return aw::value();
 	}));
 
-	return std::move(r);
+	return r;
 }
 
 }

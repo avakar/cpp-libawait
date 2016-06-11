@@ -67,7 +67,7 @@ template <typename F>
 auto poll_op(int fd, int events, F && f) -> decltype(f(1))
 {
 	if (auto t = f(fd))
-		return std::move(t);
+		return t;
 	return aw::detail::make_command<poll_op_cmd<F>>(std::move(f), fd, events);
 }
 

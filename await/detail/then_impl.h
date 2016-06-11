@@ -32,7 +32,7 @@ auto aw::task<T>::then(F && f)
 		typename aw::detail::then_traits<T, F>::return_type operator()(result<T> && r)
 		{
 			if (r.has_exception())
-				return std::move(r.exception());
+				return r.exception();
 			return detail::then_traits<T, F>::invoke(std::move(r), std::move(m_f));
 		}
 

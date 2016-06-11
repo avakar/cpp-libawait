@@ -122,7 +122,7 @@ aw::task<typename I::value_type> aw::detail::make_command(P &&... p)
 		t = std::current_exception();
 	}
 
-	return std::move(t);
+	return t;
 }
 
 #endif // AWAIT_DETAIL_COMMAND_H

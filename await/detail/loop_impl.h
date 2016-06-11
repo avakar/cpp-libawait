@@ -16,7 +16,7 @@ aw::task<void> aw::loop(F && f)
 		task<void> start(detail::scheduler & sch, detail::task_completion<void> & sink)
 		{
 			if (!detail::start_command(m_task, sch, *this))
-				return std::move(m_task);
+				return m_task;
 
 			m_sink = &sink;
 			return nullptr;
@@ -52,11 +52,11 @@ aw::task<void> aw::loop(F && f)
 	{
 		task<void> t = f();
 		if (t.empty())
-			return std::move(t);
+			return t;
 		if (detail::has_command(t))
 			return detail::make_command<cmd>(std::move(t), std::move(f));
 		if (detail::has_exception(t))
-			return std::move(t);
+			return t;
 	}
 }
 

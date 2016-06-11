@@ -25,7 +25,7 @@ template <typename T>
 auto aw::detail::task_traits<aw::result<T>>::taskify(result<T> && v) noexcept
 	-> task_type
 {
-	return std::move(v);
+	return v;
 }
 
 template <typename T>
@@ -276,7 +276,7 @@ aw::task<T> aw::task<T>::hold(P &&... p)
 
 		task<T> operator()(result<T> && r)
 		{
-			return std::move(r);
+			return r;
 		}
 
 		std::tuple<typename std::remove_const<typename std::remove_reference<P>::type>::type...> m_v;
