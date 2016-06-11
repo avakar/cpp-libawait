@@ -30,6 +30,13 @@ struct task_traits<task<T>>
 	static task_type && taskify(task<T> && v) noexcept;
 };
 
+template <>
+struct task_traits<void>
+{
+	typedef void value_type;
+	typedef task<void> task_type;
+};
+
 template <typename F, typename... P>
 struct invoke_and_taskify_traits
 {
