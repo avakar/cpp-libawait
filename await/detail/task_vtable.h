@@ -39,7 +39,102 @@ struct command_deleter
 };
 
 template <typename T>
-using command_ptr = std::unique_ptr<command<T>, command_deleter>;
+struct command_ptr
+{
+	command_ptr() noexcept
+		: m_ptr(nullptr)
+	{
+	}
+
+	command_ptr(std::nullptr_t) noexcept
+		: m_ptr(nullptr)
+	{
+	}
+
+	explicit command_ptr(command<T> * p) noexcept
+		: m_ptr(p)
+	{
+	}
+
+	command_ptr(command_ptr && o) noexcept
+		: m_ptr(o.m_ptr)
+	{
+		o.m_ptr = nullptr;
+	}
+
+	~command_ptr()
+	{
+		if (!this->empty())
+			this->dismiss();
+	}
+
+	command_ptr & operator=(command_ptr o)
+	{
+		std::swap(m_ptr, o.m_ptr);
+		return *this;
+	}
+
+	bool empty() const noexcept
+	{
+		return m_ptr == nullptr;
+	}
+
+	explicit operator bool() const noexcept
+	{
+		return m_ptr != nullptr;
+	}
+
+	bool operator!() const noexcept
+	{
+		return m_ptr == nullptr;
+	}
+
+	command<T> & operator*() const noexcept
+	{
+		return *m_ptr;
+	}
+
+	command<T> * operator->() const noexcept
+	{
+		return m_ptr;
+	}
+
+	result<T> dismiss() noexcept
+	{
+		assert(m_ptr != nullptr);
+
+		result<T> r = m_ptr->dismiss();
+		this->complete();
+		return r;
+	}
+
+	task<T> start(scheduler & sch, task_completion<T> & sink) noexcept
+	{
+		assert(m_ptr != nullptr);
+
+		for (;;)
+		{
+			task<T> t = m_ptr->start(sch, sink);
+			if (t.empty())
+				return nullptr;
+
+			this->complete();
+			*this = detail::fetch_command(t);
+
+			if (m_ptr == nullptr)
+				return std::move(t);
+		}
+	}
+
+	void complete() noexcept
+	{
+		delete m_ptr;
+		m_ptr = nullptr;
+	}
+
+private:
+	command<T> * m_ptr;
+};
 
 }
 }

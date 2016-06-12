@@ -213,26 +213,11 @@ auto aw::detail::start_command(command_ptr<T> & cmd, scheduler & sch, task_compl
 	typedef typename aw::detail::task_traits<decltype(f(std::declval<aw::result<T>>()))>::value_type U;
 
 	assert(cmd);
-	for (;;)
-	{
-		aw::task<T> u = cmd->start(sch, sink);
-		if (u.empty())
-			return nullptr;
+	aw::task<T> u = cmd.start(sch, sink);
+	if (u.empty())
+		return nullptr;
 
-		delete cmd.release();
-		cmd = aw::detail::fetch_command(u);
-
-		if (!cmd)
-			return f(aw::detail::dismiss_task(u));
-	}
-}
-
-template <typename T>
-aw::result<T> aw::detail::dismiss(command_ptr<T> & t)
-{
-	result<T> r = t->dismiss();
-	t.reset();
-	return r;
+	return f(dismiss_task(u));
 }
 
 template <typename T>

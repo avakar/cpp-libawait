@@ -68,7 +68,7 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 
 		result<U> dismiss()
 		{
-			task<U> r = detail::invoke_and_taskify(std::move(m_f), detail::dismiss(m_cmd));
+			task<U> r = detail::invoke_and_taskify(std::move(m_f), m_cmd.dismiss());
 			return detail::dismiss_task(r);
 		}
 
@@ -88,7 +88,7 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 	private:
 		void on_completion(detail::scheduler & sch, task<T> && t) override
 		{
-			delete m_cmd.release();
+			m_cmd.complete();
 
 			task<U> u;
 			if (!detail::has_command(t))

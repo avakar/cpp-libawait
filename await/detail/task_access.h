@@ -61,9 +61,6 @@ auto start_command(command_ptr<T> & cmd, scheduler & sch, task_completion<T> & s
 	-> typename task_traits<decltype(f(std::declval<result<T>>()))>::task_type;
 
 template <typename T>
-result<T> dismiss(command_ptr<T> & t);
-
-template <typename T>
 result<T> dismiss_task(task<T> & t);
 
 template <typename T>
