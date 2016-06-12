@@ -11,6 +11,14 @@ struct intrusive_hook
 	{
 	}
 
+	void detach()
+	{
+		m_prev->m_next = m_next;
+		m_next->m_prev = m_prev;
+		m_next = nullptr;
+		m_prev = nullptr;
+	}
+
 	intrusive_hook * m_next;
 	intrusive_hook * m_prev;
 };
@@ -58,6 +66,11 @@ struct intrusive_list
 		m_head.m_prev = &m_head;
 	}
 
+	bool empty() const
+	{
+		return m_head.m_next == &m_head;
+	}
+
 	iterator begin()
 	{
 		return iterator(m_head.m_next);
@@ -92,11 +105,7 @@ struct intrusive_list
 	{
 		node * n = it.m_node;
 		node * r = it.m_node->m_next;
-
-		n->m_prev->m_next = n->m_next;
-		n->m_next->m_prev = n->m_prev;
-		n->m_next = nullptr;
-		n->m_prev = nullptr;
+		n->detach();
 		return iterator(r);
 	}
 
