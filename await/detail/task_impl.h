@@ -94,6 +94,21 @@ void * aw::detail::task_access::storage(task<T> & t)
 }
 
 template <typename T>
+void aw::detail::move_value(void * dst, void * src)
+{
+	T * p = static_cast<T *>(src);
+	new(dst) T(std::move(*p));
+	p->~T();
+}
+
+template <>
+inline void aw::detail::move_value<void>(void * dst, void * src)
+{
+	(void)src;
+	(void)dst;
+}
+
+template <typename T>
 void aw::detail::move_task(task<T> & dst, task<T> & src)
 {
 	if (!dst.empty())
@@ -107,9 +122,7 @@ void aw::detail::move_task(task<T> & dst, task<T> & src)
 
 	if (kind == task_kind::value)
 	{
-		auto p = static_cast<T *>(src_storage);
-		new(dst_storage) T(std::move(*p));
-		p->~T();
+		move_value<T>(dst_storage, src_storage);
 	}
 	else if (kind == task_kind::exception)
 	{
@@ -121,31 +134,6 @@ void aw::detail::move_task(task<T> & dst, task<T> & src)
 	{
 		auto p = static_cast<command<T> **>(src_storage);
 		new(dst_storage) command<T> *(std::move(*p));
-	}
-}
-
-template <>
-inline void aw::detail::move_task<void>(task<void> & dst, task<void> & src)
-{
-	if (!dst.empty())
-		dismiss_task(dst);
-
-	task_kind kind = task_access::get_kind(src);
-	task_access::set_kind(dst, kind);
-	task_access::set_kind(src, task_kind::empty);
-	void * dst_storage = task_access::storage(dst);
-	void * src_storage = task_access::storage(src);
-
-	if (kind == task_kind::exception)
-	{
-		auto p = static_cast<std::exception_ptr *>(src_storage);
-		new(dst_storage) std::exception_ptr(std::move(*p));
-		p->~exception_ptr();
-	}
-	else if (kind == task_kind::command)
-	{
-		auto p = static_cast<command<void> **>(src_storage);
-		new(dst_storage) command<void> *(std::move(*p));
 	}
 }
 

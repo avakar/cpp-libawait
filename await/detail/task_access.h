@@ -27,6 +27,12 @@ struct task_access
 };
 
 template <typename T>
+void move_value(void * dst, void * src);
+
+template <>
+void move_value<void>(void * dst, void * src);
+
+template <typename T>
 void move_task(task<T> & dst, task<T> & src);
 
 template <typename T>
