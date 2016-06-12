@@ -119,8 +119,8 @@ void aw::detail::move_task(task<T> & dst, task<T> & src)
 	}
 	else if (kind == task_kind::command)
 	{
-		auto p = static_cast<command_base<T> **>(src_storage);
-		new(dst_storage) command_base<T> *(std::move(*p));
+		auto p = static_cast<command<T> **>(src_storage);
+		new(dst_storage) command<T> *(std::move(*p));
 	}
 }
 
@@ -144,8 +144,8 @@ inline void aw::detail::move_task<void>(task<void> & dst, task<void> & src)
 	}
 	else if (kind == task_kind::command)
 	{
-		auto p = static_cast<command_base<void> **>(src_storage);
-		new(dst_storage) command_base<void> *(std::move(*p));
+		auto p = static_cast<command<void> **>(src_storage);
+		new(dst_storage) command<void> *(std::move(*p));
 	}
 }
 
@@ -177,7 +177,7 @@ bool aw::detail::start_command(task<T> & t, scheduler & sch, task_completion<T> 
 
 	while (task_access::get_kind(t) == task_kind::command)
 	{
-		auto cmd = *static_cast<command_base<T> **>(storage);
+		auto cmd = *static_cast<command<T> **>(storage);
 
 		task<T> u = cmd->start(sch, sink);
 		if (u.empty())
@@ -215,7 +215,7 @@ aw::result<T> aw::detail::dismiss_task(task<T> & t)
 		return r;
 	}
 
-	auto cmd = static_cast<command_base<T> **>(storage);
+	auto cmd = static_cast<command<T> **>(storage);
 	result<T> r = (*cmd)->dismiss();
 	delete *cmd;
 	return r;
@@ -243,7 +243,7 @@ inline aw::result<void> aw::detail::dismiss_task<void>(task<void> & t)
 		return r;
 	}
 
-	auto cmd = static_cast<command_base<void> **>(storage);
+	auto cmd = static_cast<command<void> **>(storage);
 	result<void> r = (*cmd)->dismiss();
 	delete *cmd;
 	return r;
@@ -270,7 +270,7 @@ void aw::detail::mark_complete(task<T> & t)
 	}
 	else
 	{
-		auto cmd = static_cast<command_base<T> **>(storage);
+		auto cmd = static_cast<command<T> **>(storage);
 		delete *cmd;
 	}
 }
@@ -294,7 +294,7 @@ inline void aw::detail::mark_complete<void>(task<void> & t)
 	}
 	else
 	{
-		auto cmd = static_cast<command_base<void> **>(storage);
+		auto cmd = static_cast<command<void> **>(storage);
 		delete *cmd;
 	}
 }

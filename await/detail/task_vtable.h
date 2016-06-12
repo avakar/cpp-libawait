@@ -19,9 +19,9 @@ struct task_completion
 };
 
 template <typename T>
-struct command_base
+struct command
 {
-	virtual ~command_base() {}
+	virtual ~command() {}
 	virtual result<T> dismiss() = 0;
 	virtual task<T> start(scheduler & sch, task_completion<T> & sink) = 0;
 };

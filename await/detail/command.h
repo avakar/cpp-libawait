@@ -26,7 +26,7 @@ aw::task<typename I::value_type> aw::detail::make_command(P &&... p)
 		void * storage = detail::task_access::storage(task);
 
 		struct impl final
-			: command_base<T>, private I
+			: command<T>, private I
 		{
 			explicit impl(P &&... p)
 				: I(std::forward<P>(p)...)
@@ -46,7 +46,7 @@ aw::task<typename I::value_type> aw::detail::make_command(P &&... p)
 
 		impl * ss = new impl(std::forward<P>(p)...);
 
-		new(task_access::storage(task)) command_base<T>*(ss);
+		new(task_access::storage(task)) command<T> *(ss);
 		task_access::set_kind(task, task_kind::command);
 	}
 	catch (...)

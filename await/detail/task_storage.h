@@ -10,13 +10,13 @@ namespace detail {
 
 template <typename T>
 struct task_storage
-	: std::aligned_union<0, command_base<T> *, T, std::exception_ptr>
+	: std::aligned_union<0, command<T> *, T, std::exception_ptr>
 {
 };
 
 template <>
 struct task_storage<void>
-	: std::aligned_union<0, command_base<void> *, std::exception_ptr>
+	: std::aligned_union<0, command<void> *, std::exception_ptr>
 {
 };
 
