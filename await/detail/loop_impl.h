@@ -126,7 +126,7 @@ aw::task<void> aw::loop(Ctx c, StartF && start, UpdateF && update)
 					return nullptr;
 				}
 
-				result<T> & r = detail::get_result(m_task);
+				result<T> & r = detail::dismiss_task(m_task);
 				if (r.has_exception())
 					return r.exception();
 				detail::invoke_loop_update<T>::invoke(m_ctx, m_update, r);
@@ -161,7 +161,7 @@ aw::task<void> aw::loop(Ctx c, StartF && start, UpdateF && update)
 		if (detail::has_command(task))
 			return detail::make_command<cmd>(task, std::move(c), std::move(start), std::move(update));
 
-		result<T> & r = detail::get_result(task);
+		result<T> & r = detail::dismiss_task(task);
 		if (r.has_exception())
 			return r.exception();
 

@@ -20,7 +20,7 @@ template <typename F>
 auto aw::task<T>::then(F && f)
 	-> typename aw::detail::then_traits<T, F>::return_type
 {
-	assert(m_vtable);
+	assert(!this->empty());
 
 	struct cont
 	{
@@ -48,9 +48,9 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 {
 	typedef typename detail::invoke_and_taskify_traits<F, result<T>>::value_type U;
 
-	assert(m_vtable != nullptr);
-	if (m_vtable->start == nullptr)
-		return detail::invoke_and_taskify(std::move(f), detail::fetch_result(*this));
+	assert(m_kind != detail::task_kind::empty);
+	if (m_kind != detail::task_kind::command)
+		return detail::invoke_and_taskify(std::move(f), detail::dismiss_task(*this));
 
 	struct impl
 		: private detail::task_completion<T>
@@ -76,7 +76,7 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 				return nullptr;
 			}
 
-			return detail::invoke_and_taskify(std::move(m_f), detail::fetch_result(m_task));
+			return detail::invoke_and_taskify(std::move(m_f), detail::dismiss_task(m_task));
 		}
 
 	private:

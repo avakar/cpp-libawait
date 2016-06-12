@@ -6,60 +6,86 @@
 namespace aw {
 namespace detail {
 
-template <typename T>
-task_vtable<T> const * result_vtable()
+template <typename T, typename U>
+task_kind construct_result(void * storage, result<U> && v) noexcept
 {
-	struct impl
+	if (v.has_exception())
 	{
-		static void move_to(void * self, void * dst)
-		{
-			result<T> * o = reinterpret_cast<result<T> *>(self);
-			new(dst) result<T>(std::move(*o));
-			o->~result();
-		}
+		new(storage) std::exception_ptr(std::move(v.exception()));
+		return detail::task_kind::exception;
+	}
 
-		static result<T> dismiss(void * self)
-		{
-			result<T> * o = reinterpret_cast<result<T> *>(self);
-			return std::move(*o);
-		}
-
-		static void destroy(void * self)
-		{
-			result<T> * o = reinterpret_cast<result<T> *>(self);
-			o->~result();
-		}
-	};
-
-	static task_vtable<T> const vtable = {
-		&impl::move_to,
-		&impl::destroy,
-		&impl::dismiss,
-		nullptr,
-	};
-
-	return &vtable;
-}
-
-template <typename T>
-task_vtable<T> const * construct_exception(void * self, std::exception_ptr e)
-{
-	new(self) result<T>(std::move(e));
-	return result_vtable<T>();
+	try
+	{
+		new(storage) T(std::move(v.value()));
+		return detail::task_kind::value;
+	}
+	catch (...)
+	{
+		new(storage) std::exception_ptr(std::current_exception());
+		return detail::task_kind::exception;
+	}
 }
 
 template <typename T, typename U>
-task_vtable<T> const * construct_result(void * self, result<U> const & v)
+task_kind construct_result(void * storage, result<U> const & v) noexcept
 {
-	new(self) result<T>(v);
-	return result_vtable<T>();
+	if (v.has_exception())
+	{
+		new(storage) std::exception_ptr(v.exception());
+		return detail::task_kind::exception;
+	}
+
+	try
+	{
+		new(storage) T(v.value());
+		return detail::task_kind::value;
+	}
+	catch (...)
+	{
+		new(storage) std::exception_ptr(std::current_exception());
+		return detail::task_kind::exception;
+	}
 }
 
-template <typename T, typename U>
-task_vtable<T> const * construct_result(void * self, result<U> && v)
+template <>
+inline task_kind construct_result<void, void>(void * storage, result<void> && v) noexcept
 {
-	new(self) result<T>(std::move(v));
-	return result_vtable<T>();
+	if (v.has_exception())
+	{
+		new(storage) std::exception_ptr(std::move(v.exception()));
+		return detail::task_kind::exception;
+	}
+
+	try
+	{
+		return detail::task_kind::value;
+	}
+	catch (...)
+	{
+		new(storage) std::exception_ptr(std::current_exception());
+		return detail::task_kind::exception;
+	}
+}
+
+template <>
+inline task_kind construct_result<void, void>(void * storage, result<void> const & v) noexcept
+{
+	if (v.has_exception())
+	{
+		new(storage) std::exception_ptr(v.exception());
+		return detail::task_kind::exception;
+	}
+
+	try
+	{
+		return detail::task_kind::value;
+	}
+	catch (...)
+	{
+		new(storage) std::exception_ptr(std::current_exception());
+		return detail::task_kind::exception;
+	}
 }
 
 }

@@ -19,21 +19,11 @@ struct task_completion
 };
 
 template <typename T>
-struct task_vtable
+struct command_base
 {
-	// Moves the command from `self` to `dst` and destroys `self`. Shall only be called in `ready` state.
-	// 
-	void (*move_to)(void * self, void * dst);
-
-	// Destroys `self`. May only be called in `complete` state.
-	void (*destroy)(void * self);
-
-	// Completes the command synchronously. Shall only be called in `ready` state.
-	result<T> (*dismiss)(void * self);
-
-	// Starts the command. The command is started if the returned task is empty.
-	// Otherwise, the command is destroyed and should be replaced by the returned task.
-	task<T> (*start)(void * self, scheduler & sch, task_completion<T> & sink);
+	virtual ~command_base() {}
+	virtual result<T> dismiss() = 0;
+	virtual task<T> start(scheduler & sch, task_completion<T> & sink) = 0;
 };
 
 }

@@ -50,7 +50,7 @@ struct task
 	task<T> hold(P &&... p);
 
 private:
-	detail::task_vtable<T> const * m_vtable;
+	detail::task_kind m_kind;
 	typename detail::task_storage<T>::type m_storage;
 
 	friend detail::task_access;

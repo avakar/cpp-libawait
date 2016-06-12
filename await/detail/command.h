@@ -2,6 +2,7 @@
 #define AWAIT_DETAIL_COMMAND_H
 
 #include "../task.h"
+#include "task_vtable.h"
 #include <exception>
 
 namespace aw {
@@ -9,110 +10,6 @@ namespace detail {
 
 template <typename I, typename... P>
 task<typename I::value_type> make_command(P &&... p);
-
-template <bool fits>
-struct make_command_impl;
-
-template <>
-struct make_command_impl<true>
-{
-	template <typename I, typename... P>
-	static void make(task<typename I::value_type> & task, P &&... p)
-	{
-		typedef typename I::value_type T;
-		void * storage = detail::task_access::storage(task);
-
-		struct impl
-		{
-			static aw::task<T> start(void * self, detail::scheduler & sch, detail::task_completion<T> & sink)
-			{
-				I * ss = static_cast<I *>(self);
-				return ss->start(sch, sink);
-			}
-
-			static void move_to(void * self, void * dst)
-			{
-				I * ss = static_cast<I *>(self);
-				new(dst) I(std::move(*ss));
-				ss->~I();
-			}
-
-			static result<T> dismiss(void * self)
-			{
-				I * ss = static_cast<I *>(self);
-				return ss->dismiss();
-			}
-
-			static void destroy(void * self)
-			{
-				I * ss = static_cast<I *>(self);
-				ss->~I();
-			}
-		};
-
-		static detail::task_vtable<T> const vtable = {
-			&impl::move_to,
-			&impl::destroy,
-			&impl::dismiss,
-			&impl::start,
-		};
-
-		new(storage) I(std::forward<P>(p)...);
-		detail::task_access::set_vtable(task, &vtable);
-	}
-};
-
-template <>
-struct make_command_impl<false>
-{
-	template <typename I, typename... P>
-	static void make(task<typename I::value_type> & task, P &&... p)
-	{
-		typedef typename I::value_type T;
-		void * storage = detail::task_access::storage(task);
-
-		struct impl
-		{
-			static aw::task<T> start(void * self, detail::scheduler & sch, detail::task_completion<T> & sink)
-			{
-				I ** ss = static_cast<I **>(self);
-				aw::task<T> r = (*ss)->start(sch, sink);
-				if (!r.empty())
-					delete *ss;
-				return r;
-			}
-
-			static void move_to(void * self, void * dst)
-			{
-				I ** ss = static_cast<I **>(self);
-				new(dst) I *(*ss);
-			}
-
-			static result<T> dismiss(void * self)
-			{
-				I ** ss = static_cast<I **>(self);
-				return (*ss)->dismiss();
-			}
-
-			static void destroy(void * self)
-			{
-				I ** ss = static_cast<I **>(self);
-				delete *ss;
-			}
-		};
-
-		static detail::task_vtable<T> const vtable = {
-			&impl::move_to,
-			&impl::destroy,
-			&impl::dismiss,
-			&impl::start,
-		};
-
-		I * ss = new I(std::forward<P>(p)...);
-		new(storage) I *(ss);
-		detail::task_access::set_vtable(task, &vtable);
-	}
-};
 
 }
 }
@@ -122,19 +19,42 @@ aw::task<typename I::value_type> aw::detail::make_command(P &&... p)
 {
 	typedef typename I::value_type T;
 
-	task<T> t;
+	task<T> task;
 
 	try
 	{
-		typedef aw::detail::make_command_impl<sizeof(I) <= detail::task_access::storage_size<T>()> impl;
-		impl::template make<I>(t, std::forward<P>(p)...);
+		void * storage = detail::task_access::storage(task);
+
+		struct impl final
+			: command_base<T>, private I
+		{
+			explicit impl(P &&... p)
+				: I(std::forward<P>(p)...)
+			{
+			}
+
+			aw::task<T> start(scheduler & sch, aw::detail::task_completion<T> & sink) override
+			{
+				return this->I::start(sch, sink);
+			}
+
+			result<T> dismiss() override
+			{
+				return this->I::dismiss();
+			}
+		};
+
+		impl * ss = new impl(std::forward<P>(p)...);
+
+		new(task_access::storage(task)) command_base<T>*(ss);
+		task_access::set_kind(task, task_kind::command);
 	}
 	catch (...)
 	{
-		t = std::current_exception();
+		task = std::current_exception();
 	}
 
-	return t;
+	return task;
 }
 
 #endif // AWAIT_DETAIL_COMMAND_H

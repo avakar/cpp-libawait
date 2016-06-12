@@ -76,15 +76,15 @@ auto aw::detail::invoke_and_taskify(F && f, P &&... p) noexcept -> typename invo
 }
 
 template <typename T>
-aw::detail::task_vtable<T> const * aw::detail::task_access::get_vtable(task<T> const & t)
+aw::detail::task_kind aw::detail::task_access::get_kind(task<T> const & t)
 {
-	return t.m_vtable;
+	return t.m_kind;
 }
 
 template <typename T>
-void aw::detail::task_access::set_vtable(task<T> & t, typename identity<task_vtable<T> const *>::type vtable)
+void aw::detail::task_access::set_kind(task<T> & t, task_kind kind)
 {
-	t.m_vtable = vtable;
+	t.m_kind = kind;
 }
 
 template <typename T>
@@ -94,9 +94,59 @@ void * aw::detail::task_access::storage(task<T> & t)
 }
 
 template <typename T>
-constexpr size_t aw::detail::task_access::storage_size()
+void aw::detail::move_task(task<T> & dst, task<T> & src)
 {
-	return sizeof(task<T>::m_storage);
+	if (!dst.empty())
+		dismiss_task(dst);
+
+	task_kind kind = task_access::get_kind(src);
+	task_access::set_kind(dst, kind);
+	task_access::set_kind(src, task_kind::empty);
+	void * dst_storage = task_access::storage(dst);
+	void * src_storage = task_access::storage(src);
+
+	if (kind == task_kind::value)
+	{
+		auto p = static_cast<T *>(src_storage);
+		new(dst_storage) T(std::move(*p));
+		p->~T();
+	}
+	else if (kind == task_kind::exception)
+	{
+		auto p = static_cast<std::exception_ptr *>(src_storage);
+		new(dst_storage) std::exception_ptr(std::move(*p));
+		p->~exception_ptr();
+	}
+	else if (kind == task_kind::command)
+	{
+		auto p = static_cast<command_base<T> **>(src_storage);
+		new(dst_storage) command_base<T> *(std::move(*p));
+	}
+}
+
+template <>
+inline void aw::detail::move_task<void>(task<void> & dst, task<void> & src)
+{
+	if (!dst.empty())
+		dismiss_task(dst);
+
+	task_kind kind = task_access::get_kind(src);
+	task_access::set_kind(dst, kind);
+	task_access::set_kind(src, task_kind::empty);
+	void * dst_storage = task_access::storage(dst);
+	void * src_storage = task_access::storage(src);
+
+	if (kind == task_kind::exception)
+	{
+		auto p = static_cast<std::exception_ptr *>(src_storage);
+		new(dst_storage) std::exception_ptr(std::move(*p));
+		p->~exception_ptr();
+	}
+	else if (kind == task_kind::command)
+	{
+		auto p = static_cast<command_base<void> **>(src_storage);
+		new(dst_storage) command_base<void> *(std::move(*p));
+	}
 }
 
 template <typename T>
@@ -113,39 +163,9 @@ std::exception_ptr aw::detail::fetch_exception(task<T> & t)
 }
 
 template <typename T>
-bool aw::detail::has_result(task<T> const & t)
-{
-	auto vtable = task_access::get_vtable(t);
-	return vtable != nullptr && vtable->start == nullptr;
-}
-
-template <typename T>
-aw::result<T> const & aw::detail::get_result(task<T> const & t)
-{
-	assert(has_result(t));
-	return *static_cast<result<T> const *>(task_access::storage(t));
-}
-
-template <typename T>
-aw::result<T> & aw::detail::get_result(task<T> & t)
-{
-	assert(has_result(t));
-	return *static_cast<result<T> *>(task_access::storage(t));
-}
-
-template <typename T>
-aw::result<T> aw::detail::fetch_result(task<T> & t)
-{
-	aw::result<T> r = std::move(get_result(t));
-	t.clear();
-	return r;
-}
-
-template <typename T>
 bool aw::detail::has_command(task<T> const & t)
 {
-	auto vtable = task_access::get_vtable(t);
-	return vtable != nullptr && vtable->start != nullptr;
+	return task_access::get_kind(t) == task_kind::command;
 }
 
 template <typename T>
@@ -153,22 +173,21 @@ bool aw::detail::start_command(task<T> & t, scheduler & sch, task_completion<T> 
 {
 	assert(!t.empty());
 
-	task_vtable<T> const * vtable = task_access::get_vtable(t);
 	void * storage = task_access::storage(t);
 
-	for (;;)
+	while (task_access::get_kind(t) == task_kind::command)
 	{
-		if (vtable->start == nullptr)
-			return false;
+		auto cmd = *static_cast<command_base<T> **>(storage);
 
-		task<T> u = vtable->start(storage, sch, sink);
+		task<T> u = cmd->start(sch, sink);
 		if (u.empty())
 			return true;
 
-		task_access::set_vtable(t, nullptr);
+		mark_complete(t);
 		t = std::move(u);
-		vtable = detail::task_access::get_vtable(t);
 	}
+
+	return false;
 }
 
 template <typename T>
@@ -176,12 +195,57 @@ aw::result<T> aw::detail::dismiss_task(task<T> & t)
 {
 	assert(!t.empty());
 
-	task_vtable<T> const * vtable = task_access::get_vtable(t);
+	task_kind kind = task_access::get_kind(t);
+	task_access::set_kind(t, task_kind::empty);
 	void * storage = task_access::storage(t);
 
-	result<T> r = vtable->dismiss(storage);
-	vtable->destroy(storage);
-	task_access::set_vtable(t, nullptr);
+	if (kind == task_kind::value)
+	{
+		auto p = static_cast<T *>(storage);
+		result<T> r(in_place, std::move(*p));
+		p->~T();
+		return r;
+	}
+
+	if (kind == task_kind::exception)
+	{
+		auto p = static_cast<std::exception_ptr *>(storage);
+		result<T> r(std::move(*p));
+		p->~exception_ptr();
+		return r;
+	}
+
+	auto cmd = static_cast<command_base<T> **>(storage);
+	result<T> r = (*cmd)->dismiss();
+	delete *cmd;
+	return r;
+}
+
+template <>
+inline aw::result<void> aw::detail::dismiss_task<void>(task<void> & t)
+{
+	assert(!t.empty());
+
+	task_kind kind = task_access::get_kind(t);
+	task_access::set_kind(t, task_kind::empty);
+	void * storage = task_access::storage(t);
+
+	if (kind == task_kind::value)
+	{
+		return aw::value();
+	}
+
+	if (kind == task_kind::exception)
+	{
+		auto p = static_cast<std::exception_ptr *>(storage);
+		result<void> r(std::move(*p));
+		p->~exception_ptr();
+		return r;
+	}
+
+	auto cmd = static_cast<command_base<void> **>(storage);
+	result<void> r = (*cmd)->dismiss();
+	delete *cmd;
 	return r;
 }
 
@@ -190,41 +254,68 @@ void aw::detail::mark_complete(task<T> & t)
 {
 	assert(!t.empty());
 
-	task_vtable<T> const * vtable = task_access::get_vtable(t);
+	task_kind kind = task_access::get_kind(t);
+	task_access::set_kind(t, task_kind::empty);
 	void * storage = task_access::storage(t);
 
-	vtable->destroy(storage);
-	task_access::set_vtable(t, nullptr);
+	if (kind == task_kind::value)
+	{
+		auto p = static_cast<T *>(storage);
+		p->~T();
+	}
+	else if (kind == task_kind::exception)
+	{
+		auto p = static_cast<std::exception_ptr *>(storage);
+		p->~exception_ptr();
+	}
+	else
+	{
+		auto cmd = static_cast<command_base<T> **>(storage);
+		delete *cmd;
+	}
+}
+
+template <>
+inline void aw::detail::mark_complete<void>(task<void> & t)
+{
+	assert(!t.empty());
+
+	task_kind kind = task_access::get_kind(t);
+	task_access::set_kind(t, task_kind::empty);
+	void * storage = task_access::storage(t);
+
+	if (kind == task_kind::value)
+	{
+	}
+	else if (kind == task_kind::exception)
+	{
+		auto p = static_cast<std::exception_ptr *>(storage);
+		p->~exception_ptr();
+	}
+	else
+	{
+		auto cmd = static_cast<command_base<void> **>(storage);
+		delete *cmd;
+	}
 }
 
 template <typename T>
 aw::task<T>::task()
-	: m_vtable(nullptr)
+	: m_kind(detail::task_kind::empty)
 {
 }
 
 template <typename T>
 aw::task<T>::task(task && o)
-	: m_vtable(o.m_vtable)
+	: m_kind(detail::task_kind::empty)
 {
-	if (m_vtable)
-	{
-		m_vtable->move_to(&o.m_storage, &m_storage);
-		o.m_vtable = nullptr;
-	}
+	detail::move_task(*this, o);
 }
 
 template <typename T>
 aw::task<T> & aw::task<T>::operator=(task && o)
 {
-	this->clear();
-
-	m_vtable = o.m_vtable;
-	if (m_vtable)
-	{
-		m_vtable->move_to(&o.m_storage, &m_storage);
-		o.m_vtable = nullptr;
-	}
+	detail::move_task(*this, o);
 	return *this;
 }
 
@@ -236,46 +327,43 @@ aw::task<T>::~task()
 
 template <typename T>
 aw::task<T>::task(std::nullptr_t)
-	: m_vtable(nullptr)
+	: m_kind(detail::task_kind::empty)
 {
 }
 
 template <typename T>
 aw::task<T>::task(std::exception_ptr e)
+	: m_kind(detail::task_kind::exception)
 {
 	assert(e != nullptr);
-	m_vtable = detail::construct_exception<T>(&m_storage, std::move(e));
+	new(&m_storage) std::exception_ptr(std::move(e));
 }
 
 template <typename T>
 template <typename U>
 aw::task<T>::task(result<U> && v)
 {
-	m_vtable = detail::construct_result<T>(&m_storage, std::move(v));
+	m_kind = detail::construct_result<T>(&m_storage, std::move(v));
 }
 
 template <typename T>
 template <typename U>
 aw::task<T>::task(result<U> const & v)
 {
-	m_vtable = detail::construct_result<T>(&m_storage, v);
+	m_kind = detail::construct_result<T>(&m_storage, v);
 }
 
 template <typename T>
 void aw::task<T>::clear()
 {
-	if (m_vtable)
-	{
-		(void)m_vtable->dismiss(&m_storage);
-		m_vtable->destroy(&m_storage);
-		m_vtable = nullptr;
-	}
+	if (m_kind != detail::task_kind::empty)
+		detail::dismiss_task(*this);
 }
 
 template <typename T>
 bool aw::task<T>::empty() const
 {
-	return m_vtable == nullptr;
+	return m_kind == detail::task_kind::empty;
 }
 
 template <typename T>
