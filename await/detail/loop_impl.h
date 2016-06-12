@@ -28,9 +28,10 @@ aw::task<void> aw::loop(F && f)
 			m_task = std::move(t);
 			while (!detail::start_command(m_task, sch, *this))
 			{
-				if (detail::has_exception(m_task))
+				result<void> r = detail::dismiss_task(m_task);
+				if (r.has_exception())
 				{
-					m_sink->on_completion(sch, std::move(m_task));
+					m_sink->on_completion(sch, std::move(r));
 					return;
 				}
 
@@ -55,8 +56,9 @@ aw::task<void> aw::loop(F && f)
 			return t;
 		if (detail::has_command(t))
 			return detail::make_command<cmd>(std::move(t), std::move(f));
-		if (detail::has_exception(t))
-			return t;
+		result<void> r = detail::dismiss_task(t);
+		if (r.has_exception())
+			return r;
 	}
 }
 
