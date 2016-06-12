@@ -14,19 +14,39 @@ aw::task<typename I::value_type> aw::detail::make_command(P &&... p)
 			{
 			}
 
-			aw::task<T> start(scheduler & sch, aw::detail::task_completion<T> & sink) override
+			aw::task<T> start(scheduler & sch, aw::detail::task_completion<T> & sink) noexcept override
 			{
-				return this->I::start(sch, sink);
+				try
+				{
+					return this->I::start(sch, sink);
+				}
+				catch (...)
+				{
+					return std::current_exception();
+				}
 			}
 
-			result<T> dismiss() override
+			result<T> dismiss() noexcept override
 			{
-				return this->I::dismiss();
+				try
+				{
+					return this->I::dismiss();
+				}
+				catch (...)
+				{
+					return std::current_exception();
+				}
 			}
 
-			void cancel(scheduler & sch) override
+			void cancel(scheduler & sch) noexcept override
 			{
-				return this->I::cancel(sch);
+				try
+				{
+					this->I::cancel(sch);
+				}
+				catch (...)
+				{
+				}
 			}
 		};
 

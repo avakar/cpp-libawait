@@ -23,15 +23,15 @@ template <typename T>
 struct command
 {
 	virtual ~command() {}
-	virtual result<T> dismiss() = 0;
-	virtual task<T> start(scheduler & sch, task_completion<T> & sink) = 0;
-	virtual void cancel(scheduler & sch) = 0;
+	virtual result<T> dismiss() noexcept = 0;
+	virtual task<T> start(scheduler & sch, task_completion<T> & sink) noexcept = 0;
+	virtual void cancel(scheduler & sch) noexcept = 0;
 };
 
 struct command_deleter
 {
 	template <typename T>
-	void operator()(command<T> * cmd)
+	void operator()(command<T> * cmd) noexcept
 	{
 		(void)cmd->dismiss();
 		delete cmd;
