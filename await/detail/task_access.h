@@ -33,6 +33,12 @@ template <>
 void move_value<void>(void * dst, void * src);
 
 template <typename T>
+void destroy_value(void * p);
+
+template <>
+void destroy_value<void>(void * p);
+
+template <typename T>
 void move_task(task<T> & dst, task<T> & src);
 
 template <typename T>
@@ -59,9 +65,6 @@ result<T> dismiss(command_ptr<T> & t);
 
 template <typename T>
 result<T> dismiss_task(task<T> & t);
-
-template <>
-result<void> dismiss_task<void>(task<void> & t);
 
 template <typename T>
 void mark_complete(task<T> & t);

@@ -109,6 +109,18 @@ inline void aw::detail::move_value<void>(void * dst, void * src)
 }
 
 template <typename T>
+void aw::detail::destroy_value(void * p)
+{
+	static_cast<T *>(p)->~T();
+}
+
+template <>
+inline void aw::detail::destroy_value<void>(void * p)
+{
+	(void)p;
+}
+
+template <typename T>
 void aw::detail::move_task(task<T> & dst, task<T> & src)
 {
 	if (!dst.empty())
@@ -290,8 +302,7 @@ void aw::detail::mark_complete(task<T> & t)
 
 	if (kind == task_kind::value)
 	{
-		auto p = static_cast<T *>(storage);
-		p->~T();
+		destroy_value<T>(storage);
 	}
 	else if (kind == task_kind::exception)
 	{
@@ -301,30 +312,6 @@ void aw::detail::mark_complete(task<T> & t)
 	else
 	{
 		auto cmd = static_cast<command<T> **>(storage);
-		delete *cmd;
-	}
-}
-
-template <>
-inline void aw::detail::mark_complete<void>(task<void> & t)
-{
-	assert(!t.empty());
-
-	task_kind kind = task_access::get_kind(t);
-	task_access::set_kind(t, task_kind::empty);
-	void * storage = task_access::storage(t);
-
-	if (kind == task_kind::value)
-	{
-	}
-	else if (kind == task_kind::exception)
-	{
-		auto p = static_cast<std::exception_ptr *>(storage);
-		p->~exception_ptr();
-	}
-	else
-	{
-		auto cmd = static_cast<command<void> **>(storage);
 		delete *cmd;
 	}
 }
