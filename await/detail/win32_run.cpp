@@ -43,6 +43,22 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 			++m_handle_count;
 		}
 
+		void remove_handle(HANDLE h, completion_sink & sink) noexcept override
+		{
+			for (size_t i = 0; i < m_handle_count; ++i)
+			{
+				if (m_handles[i] == h && m_sinks[i] == &sink)
+				{
+					std::swap(m_handles[i], m_handles[m_handle_count - 1]);
+					std::swap(m_sinks[i], m_sinks[m_handle_count - 1]);
+					--m_handle_count;
+					return;
+				}
+			}
+
+			assert(false);
+		}
+
 		sleeper_node * register_sleeper(completion_sink & sink) override
 		{
 			sleeper_node_impl * s = new sleeper_node_impl(*this, sink);

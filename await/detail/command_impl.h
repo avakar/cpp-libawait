@@ -23,6 +23,11 @@ aw::task<typename I::value_type> aw::detail::make_command(P &&... p)
 			{
 				return this->I::dismiss();
 			}
+
+			void cancel(scheduler & sch) override
+			{
+				return this->I::cancel(sch);
+			}
 		};
 
 		impl * ss = new impl(std::forward<P>(p)...);

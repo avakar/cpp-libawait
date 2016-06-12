@@ -25,6 +25,7 @@ struct command
 	virtual ~command() {}
 	virtual result<T> dismiss() = 0;
 	virtual task<T> start(scheduler & sch, task_completion<T> & sink) = 0;
+	virtual void cancel(scheduler & sch) = 0;
 };
 
 struct command_deleter

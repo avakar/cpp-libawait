@@ -18,6 +18,12 @@ aw::task<void> aw::postpone()
 			(void)sink;
 			return aw::value();
 		}
+
+		void cancel(detail::scheduler & sch)
+		{
+			(void)sch;
+			assert(false);
+		}
 	};
 
 	return detail::make_command<cmd>();

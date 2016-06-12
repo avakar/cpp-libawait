@@ -13,6 +13,7 @@ struct aw::detail::scheduler
 	};
 
 	virtual void add_handle(HANDLE h, completion_sink & sink) = 0;
+	virtual void remove_handle(HANDLE h, completion_sink & sink) noexcept = 0;
 
 	struct sleeper_node
 	{

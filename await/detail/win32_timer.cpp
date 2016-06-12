@@ -59,6 +59,13 @@ aw::task<void> aw::wait_ms(int64_t ms)
 			return nullptr;
 		}
 
+		void cancel(detail::scheduler & sch)
+		{
+			assert(m_sink != nullptr);
+			sch.remove_handle(m_h, *this);
+			m_sink->on_completion(sch, std::make_exception_ptr(aw::task_aborted()));
+		}
+
 	private:
 		completion_result on_completion(detail::scheduler & sch) override
 		{

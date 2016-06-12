@@ -80,6 +80,11 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 			});
 		}
 
+		void cancel(detail::scheduler & sch)
+		{
+			m_cmd->cancel(sch);
+		}
+
 	private:
 		void on_completion(detail::scheduler & sch, task<T> && t) override
 		{

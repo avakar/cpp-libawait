@@ -79,6 +79,12 @@ struct sock_read_command
 		return nullptr;
 	}
 
+	void cancel(aw::detail::scheduler & sch)
+	{
+		(void)sch;
+		CancelIoEx((HANDLE)m_sock, &m_ov);
+	}
+
 	completion_result on_completion(aw::detail::scheduler & sch)
 	{
 		if (m_ov.Offset != 0)
@@ -140,6 +146,12 @@ struct sock_write_command
 		m_sleeper_node = sch.register_sleeper(*this);
 		m_sink = &sink;
 		return nullptr;
+	}
+
+	void cancel(aw::detail::scheduler & sch)
+	{
+		(void)sch;
+		CancelIoEx((HANDLE)m_sock, &m_ov);
 	}
 
 	completion_result on_completion(aw::detail::scheduler & sch)
@@ -250,6 +262,12 @@ struct connect_impl
 		sch.add_handle(m_h, *this);
 		m_sink = &sink;
 		return nullptr;
+	}
+
+	void cancel(aw::detail::scheduler & sch)
+	{
+		sch.remove_handle(m_h, *this);
+		m_sink->on_completion(sch, std::make_exception_ptr(aw::task_aborted()));
 	}
 
 	aw::task<std::shared_ptr<aw::stream>> complete()
@@ -438,7 +456,8 @@ private:
 namespace aw {
 namespace detail {
 
-task<void> win32_wait_handle(HANDLE h)
+template <typename Cancel>
+task<void> win32_wait_handle(HANDLE h, Cancel && cancel_fn)
 {
 	DWORD err = WaitForSingleObject(h, 0);
 	if (err == WAIT_OBJECT_0)
@@ -452,8 +471,8 @@ task<void> win32_wait_handle(HANDLE h)
 	{
 		typedef void value_type;
 
-		explicit cmd(HANDLE h)
-			: m_h(h), m_sink(nullptr)
+		explicit cmd(HANDLE h, Cancel && cancel_fn)
+			: m_h(h), m_sink(nullptr), m_cancel_fn(cancel_fn)
 		{
 		}
 
@@ -469,6 +488,16 @@ task<void> win32_wait_handle(HANDLE h)
 			return nullptr;
 		}
 
+		void cancel(aw::detail::scheduler & sch)
+		{
+			completion_result cr = m_cancel_fn();
+			if (cr == completion_result::finish)
+			{
+				sch.remove_handle(m_h, *this);
+				m_sink->on_completion(sch, std::make_exception_ptr(aw::task_aborted()));
+			}
+		}
+
 	private:
 		completion_result on_completion(scheduler & sch) override
 		{
@@ -478,9 +507,10 @@ task<void> win32_wait_handle(HANDLE h)
 
 		HANDLE m_h;
 		task_completion<void> * m_sink;
+		Cancel m_cancel_fn;
 	};
 
-	return aw::detail::make_command<cmd>(h);
+	return aw::detail::make_command<cmd>(h, std::move(cancel_fn));
 }
 
 }
@@ -521,7 +551,7 @@ static aw::task<void> listen_one(uint16_t port, std::function<void(std::shared_p
 	};
 
 	return aw::loop(Ctx{ std::move(winsock), std::move(sg), std::move(eg) }, [](Ctx & ctx) {
-		return aw::detail::win32_wait_handle(ctx.event);
+		return aw::detail::win32_wait_handle(ctx.event, [] { return aw::detail::scheduler::completion_sink::completion_result::finish; });
 	}, [accept_fn](Ctx & ctx) {
 		WSANETWORKEVENTS ne;
 		if (WSAEnumNetworkEvents(ctx.sock, ctx.event, &ne) == SOCKET_ERROR)
