@@ -169,6 +169,19 @@ bool aw::detail::has_command(task<T> const & t)
 }
 
 template <typename T>
+aw::detail::command_ptr<T> aw::detail::fetch_command(task<T> & t)
+{
+	if (task_access::get_kind(t) == task_kind::command)
+	{
+		auto * cmd = *static_cast<command<T> **>(task_access::storage(t));
+		task_access::set_kind(t, task_kind::empty);
+		return aw::detail::command_ptr<T>(cmd);
+	}
+
+	return nullptr;
+}
+
+template <typename T>
 bool aw::detail::start_command(task<T> & t, scheduler & sch, task_completion<T> & sink)
 {
 	assert(!t.empty());
@@ -188,6 +201,35 @@ bool aw::detail::start_command(task<T> & t, scheduler & sch, task_completion<T> 
 	}
 
 	return false;
+}
+
+template <typename T, typename F>
+auto aw::detail::start_command(command_ptr<T> & cmd, scheduler & sch, task_completion<T> & sink, F && f)
+	-> typename task_traits<decltype(f(std::declval<result<T>>()))>::task_type
+{
+	typedef typename aw::detail::task_traits<decltype(f(std::declval<aw::result<T>>()))>::value_type U;
+
+	assert(cmd);
+	for (;;)
+	{
+		aw::task<T> u = cmd->start(sch, sink);
+		if (u.empty())
+			return nullptr;
+
+		delete cmd.release();
+		cmd = aw::detail::fetch_command(u);
+
+		if (!cmd)
+			return f(aw::detail::dismiss_task(u));
+	}
+}
+
+template <typename T>
+aw::result<T> aw::detail::dismiss(command_ptr<T> & t)
+{
+	result<T> r = t->dismiss();
+	t.reset();
+	return r;
 }
 
 template <typename T>

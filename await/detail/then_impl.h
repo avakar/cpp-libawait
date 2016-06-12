@@ -58,39 +58,47 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 		typedef U value_type;
 
 		impl(task<T> && t, F && f)
-			: m_task(std::move(t)), m_f(std::move(f))
+			: m_cmd(detail::fetch_command(t)), m_f(std::move(f))
 		{
 		}
 
 		result<U> dismiss()
 		{
-			task<U> r = detail::invoke_and_taskify(std::move(m_f), detail::dismiss_task(m_task));
+			task<U> r = detail::invoke_and_taskify(std::move(m_f), detail::dismiss(m_cmd));
 			return detail::dismiss_task(r);
 		}
 
 		task<U> start(detail::scheduler & sch, detail::task_completion<U> & sink)
 		{
-			if (detail::start_command(m_task, sch, *this))
-			{
-				m_sink = &sink;
-				return nullptr;
-			}
-
-			return detail::invoke_and_taskify(std::move(m_f), detail::dismiss_task(m_task));
+			m_sink = &sink;
+			return start_command(m_cmd, sch, *this, [this](result<T> && r) {
+				return detail::invoke_and_taskify(std::move(m_f), std::move(r));
+			});
 		}
 
 	private:
 		void on_completion(detail::scheduler & sch, task<T> && t) override
 		{
-			detail::mark_complete(m_task);
-			m_task = std::move(t);
+			delete m_cmd.release();
 
-			task<U> u = this->start(sch, *m_sink);
+			task<U> u;
+			if (!detail::has_command(t))
+			{
+				u = detail::invoke_and_taskify(std::move(m_f), detail::dismiss_task(t));
+			}
+			else
+			{
+				m_cmd = detail::fetch_command(t);
+				u = start_command(m_cmd, sch, *this, [this](result<T> && r) {
+					return detail::invoke_and_taskify(std::move(m_f), std::move(r));
+				});
+			}
+
 			if (!u.empty())
 				m_sink->on_completion(sch, std::move(u));
 		}
 
-		task<T> m_task;
+		detail::command_ptr<T> m_cmd;
 		F m_f;
 		detail::task_completion<U> * m_sink;
 	};

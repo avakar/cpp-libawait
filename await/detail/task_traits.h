@@ -1,9 +1,13 @@
 #ifndef AWAIT_DETAIL_TASK_TRAITS_H
 #define AWAIT_DETAIL_TASK_TRAITS_H
 
-#include "../task.h"
+#include "../result.h"
 
 namespace aw {
+
+template <typename T>
+struct task;
+
 namespace detail {
 
 template <typename T>

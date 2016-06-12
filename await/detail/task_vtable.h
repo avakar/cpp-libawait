@@ -2,6 +2,7 @@
 #define AWAIT_DETAIL_TASK_VTABLE_H
 
 #include "../result.h"
+#include <memory>
 
 namespace aw {
 
@@ -25,6 +26,19 @@ struct command
 	virtual result<T> dismiss() = 0;
 	virtual task<T> start(scheduler & sch, task_completion<T> & sink) = 0;
 };
+
+struct command_deleter
+{
+	template <typename T>
+	void operator()(command<T> * cmd)
+	{
+		(void)cmd->dismiss();
+		delete cmd;
+	}
+};
+
+template <typename T>
+using command_ptr = std::unique_ptr<command<T>, command_deleter>;
 
 }
 }

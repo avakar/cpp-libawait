@@ -2,6 +2,7 @@
 #define AWAIT_DETAIL_TASK_ACCESS_H
 
 #include "task_vtable.h"
+#include "task_traits.h"
 #include <stddef.h>
 
 namespace aw {
@@ -38,7 +39,17 @@ template <typename T>
 bool has_command(task<T> const & t);
 
 template <typename T>
+command_ptr<T> fetch_command(task<T> & t);
+
+template <typename T>
 bool start_command(task<T> & t, scheduler & sch, task_completion<T> & sink);
+
+template <typename T, typename F>
+auto start_command(command_ptr<T> & cmd, scheduler & sch, task_completion<T> & sink, F && f)
+	-> typename task_traits<decltype(f(std::declval<result<T>>()))>::task_type;
+
+template <typename T>
+result<T> dismiss(command_ptr<T> & t);
 
 template <typename T>
 result<T> dismiss_task(task<T> & t);
