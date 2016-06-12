@@ -166,19 +166,6 @@ void aw::detail::move_task(task<T> & dst, task<T> & src)
 }
 
 template <typename T>
-bool aw::detail::has_exception(task<T> const & t)
-{
-	return has_result(t) && get_result(t).has_exception();
-}
-
-template <typename T>
-std::exception_ptr aw::detail::fetch_exception(task<T> & t)
-{
-	assert(has_exception(t));
-	return fetch_result(t).exception();
-}
-
-template <typename T>
 bool aw::detail::has_command(task<T> const & t)
 {
 	return task_access::get_kind(t) == task_kind::command;

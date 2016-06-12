@@ -48,12 +48,6 @@ template <typename T>
 void move_task(task<T> & dst, task<T> & src);
 
 template <typename T>
-bool has_exception(task<T> const & t);
-
-template <typename T>
-std::exception_ptr fetch_exception(task<T> & t);
-
-template <typename T>
 bool has_command(task<T> const & t);
 
 template <typename T>
