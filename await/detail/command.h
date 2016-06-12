@@ -20,11 +20,8 @@ aw::task<typename I::value_type> aw::detail::make_command(P &&... p)
 	typedef typename I::value_type T;
 
 	task<T> task;
-
 	try
 	{
-		void * storage = detail::task_access::storage(task);
-
 		struct impl final
 			: command<T>, private I
 		{

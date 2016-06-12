@@ -5,6 +5,7 @@ template <typename T, typename F>
 auto aw::detail::then_traits<T, F>::invoke(result<T> && t, F && f) noexcept
 	-> return_type
 {
+	assert(t.has_value());
 	return invoke_and_taskify(std::move(f), std::move(t.value()));
 }
 
@@ -12,6 +13,9 @@ template <typename F>
 auto aw::detail::then_traits<void, F>::invoke(result<void> && t, F && f) noexcept
 	-> return_type
 {
+	(void)t;
+
+	assert(t.has_value());
 	return invoke_and_taskify(std::move(f));
 }
 

@@ -90,6 +90,8 @@ struct sock_read_command
 	
 	static void CALLBACK completion_routine(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)
 	{
+		(void)dwFlags;
+
 		sock_read_command * self = CONTAINING_RECORD(lpOverlapped, sock_read_command, m_ov);
 		lpOverlapped->Offset = dwError;
 		lpOverlapped->Internal = cbTransferred;
@@ -151,6 +153,8 @@ struct sock_write_command
 
 	static void CALLBACK completion_routine(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)
 	{
+		(void)dwFlags;
+
 		sock_write_command * self = CONTAINING_RECORD(lpOverlapped, sock_write_command, m_ov);
 		lpOverlapped->Offset = dwError;
 		lpOverlapped->Internal = cbTransferred;

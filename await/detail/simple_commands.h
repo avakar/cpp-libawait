@@ -57,15 +57,7 @@ inline task_kind construct_result<void, void>(void * storage, result<void> && v)
 		return detail::task_kind::exception;
 	}
 
-	try
-	{
-		return detail::task_kind::value;
-	}
-	catch (...)
-	{
-		new(storage) std::exception_ptr(std::current_exception());
-		return detail::task_kind::exception;
-	}
+	return detail::task_kind::value;
 }
 
 template <>
@@ -77,15 +69,7 @@ inline task_kind construct_result<void, void>(void * storage, result<void> const
 		return detail::task_kind::exception;
 	}
 
-	try
-	{
-		return detail::task_kind::value;
-	}
-	catch (...)
-	{
-		new(storage) std::exception_ptr(std::current_exception());
-		return detail::task_kind::exception;
-	}
+	return detail::task_kind::value;
 }
 
 }
