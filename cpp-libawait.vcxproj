@@ -22,6 +22,7 @@
     <ClInclude Include="await\cancel.h" />
     <ClInclude Include="await\coroutine.h" />
     <ClInclude Include="await\detail\command.h" />
+    <ClInclude Include="await\detail\command_impl.h" />
     <ClInclude Include="await\detail\intrusive_list.h" />
     <ClInclude Include="await\detail\loop_impl.h" />
     <ClInclude Include="await\detail\result_impl.h" />
