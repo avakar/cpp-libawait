@@ -121,6 +121,22 @@ inline void aw::detail::destroy_value<void>(void * p)
 }
 
 template <typename T>
+aw::result<T> aw::detail::dismiss_value(void * p)
+{
+	T * pp = static_cast<T *>(p);
+	result<T> r(in_place, std::move(*pp));
+	pp->~T();
+	return r;
+}
+
+template <>
+inline aw::result<void> aw::detail::dismiss_value<void>(void * p)
+{
+	(void)p;
+	return result<void>(in_place);
+}
+
+template <typename T>
 void aw::detail::move_task(task<T> & dst, task<T> & src)
 {
 	if (!dst.empty())
@@ -242,12 +258,7 @@ aw::result<T> aw::detail::dismiss_task(task<T> & t)
 	void * storage = task_access::storage(t);
 
 	if (kind == task_kind::value)
-	{
-		auto p = static_cast<T *>(storage);
-		result<T> r(in_place, std::move(*p));
-		p->~T();
-		return r;
-	}
+		return dismiss_value<T>(storage);
 
 	if (kind == task_kind::exception)
 	{
@@ -259,34 +270,6 @@ aw::result<T> aw::detail::dismiss_task(task<T> & t)
 
 	auto cmd = static_cast<command<T> **>(storage);
 	result<T> r = (*cmd)->dismiss();
-	delete *cmd;
-	return r;
-}
-
-template <>
-inline aw::result<void> aw::detail::dismiss_task<void>(task<void> & t)
-{
-	assert(!t.empty());
-
-	task_kind kind = task_access::get_kind(t);
-	task_access::set_kind(t, task_kind::empty);
-	void * storage = task_access::storage(t);
-
-	if (kind == task_kind::value)
-	{
-		return aw::value();
-	}
-
-	if (kind == task_kind::exception)
-	{
-		auto p = static_cast<std::exception_ptr *>(storage);
-		result<void> r(std::move(*p));
-		p->~exception_ptr();
-		return r;
-	}
-
-	auto cmd = static_cast<command<void> **>(storage);
-	result<void> r = (*cmd)->dismiss();
 	delete *cmd;
 	return r;
 }
