@@ -28,6 +28,13 @@ aw::task<short> aw::detail::linux_fd_task(int fd, short events)
 			return nullptr;
 		}
 
+		void cancel(scheduler & sch)
+		{
+			// XXX
+			sch.remove_fd(m_fd, *this);
+			m_sink->on_completion(sch, std::make_exception_ptr(aw::task_aborted()));
+		}
+
 	private:
 		void on_completion(scheduler & sch, short revents) override
 		{

@@ -50,6 +50,22 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 			m_items.push_back(*item);
 		}
 
+		void remove_fd(int fd, fd_completion_sink & sink) override
+		{
+			for (epoll_item & item: m_items)
+			{
+				if (item.fd == fd & item.sink == &sink)
+				{
+					m_items.remove(item);
+					delete &item;
+					epoll_ctl(m_epoll, EPOLL_CTL_DEL, fd, nullptr);
+					return;
+				}
+			}
+
+			assert(false);
+		}
+
 		void on_completion(scheduler & sch, task<void> && t) override
 		{
 			assert(&sch == this);

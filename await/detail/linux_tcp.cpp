@@ -52,6 +52,12 @@ struct poll_op_cmd
 		return nullptr;
 	}
 
+	void cancel(aw::detail::scheduler & sch)
+	{
+		sch.remove_fd(m_fd, *this);
+		m_sink->on_completion(sch, std::make_exception_ptr(aw::task_aborted()));
+	}
+
 private:
 	void on_completion(aw::detail::scheduler & sch, short revents) override
 	{
