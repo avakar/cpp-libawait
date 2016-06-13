@@ -54,9 +54,6 @@ private:
 	friend detail::task_access;
 };
 
-template <typename F>
-task<void> loop(F && f);
-
 template <typename Ctx, typename StartF, typename UpdateF>
 task<void> loop(Ctx c, StartF && start, UpdateF && update);
 
