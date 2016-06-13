@@ -28,9 +28,11 @@ struct task
 	template <typename U>
 	task(result<U> const & v);
 
-	void clear();
 	bool empty() const;
 	explicit operator bool() const;
+
+	result<T> dismiss() noexcept;
+	void clear();
 
 	template <typename F>
 	auto continue_with(F && f)

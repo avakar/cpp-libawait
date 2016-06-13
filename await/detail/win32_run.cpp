@@ -134,5 +134,5 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 		}
 	}
 
-	return detail::dismiss_task(t);
+	return t.dismiss();
 }

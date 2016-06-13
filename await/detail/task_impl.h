@@ -65,10 +65,37 @@ aw::task<T>::task(result<U> const & v)
 }
 
 template <typename T>
+aw::result<T> aw::task<T>::dismiss() noexcept
+{
+	assert(m_kind != detail::task_kind::empty);
+
+	detail::task_kind kind = m_kind;
+	m_kind = detail::task_kind::empty;
+
+	if (kind == detail::task_kind::value)
+		return detail::dismiss_value<T>(&m_storage);
+
+	if (kind == detail::task_kind::exception)
+	{
+		std::exception_ptr & p = reinterpret_cast<std::exception_ptr &>(m_storage);
+		std::exception_ptr r = std::move(p);
+		p.~exception_ptr();
+		return r;
+	}
+
+	assert(kind == detail::task_kind::command);
+
+	detail::command<T> *& p = reinterpret_cast<detail::command<T> *&>(m_storage);
+	result<T> r = p->dismiss();
+	delete p;
+	return r;
+}
+
+template <typename T>
 void aw::task<T>::clear()
 {
 	if (m_kind != detail::task_kind::empty)
-		detail::dismiss_task(*this);
+		(void)this->dismiss();
 }
 
 template <typename T>

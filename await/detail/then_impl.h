@@ -54,7 +54,7 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 
 	assert(m_kind != detail::task_kind::empty);
 	if (m_kind != detail::task_kind::command)
-		return detail::invoke_and_taskify(std::move(f), detail::dismiss_task(*this));
+		return detail::invoke_and_taskify(std::move(f), this->dismiss());
 
 	struct impl
 		: private detail::task_completion<T>
@@ -69,7 +69,7 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 		result<U> dismiss()
 		{
 			task<U> r = detail::invoke_and_taskify(std::move(m_f), m_cmd.dismiss());
-			return detail::dismiss_task(r);
+			return r.dismiss();
 		}
 
 		task<U> start(detail::scheduler & sch, detail::task_completion<U> & sink)
@@ -93,7 +93,7 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 			task<U> u;
 			if (!detail::has_command(t))
 			{
-				u = detail::invoke_and_taskify(std::move(m_f), detail::dismiss_task(t));
+				u = detail::invoke_and_taskify(std::move(m_f), t.dismiss());
 			}
 			else
 			{

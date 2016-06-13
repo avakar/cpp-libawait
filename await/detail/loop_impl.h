@@ -28,7 +28,7 @@ aw::task<void> aw::loop(F && f)
 			m_task = std::move(t);
 			while (!detail::start_command(m_task, sch, *this))
 			{
-				result<void> r = detail::dismiss_task(m_task);
+				result<void> r = m_task.dismiss();
 				if (r.has_exception())
 				{
 					m_sink->on_completion(sch, std::move(r));
@@ -56,7 +56,7 @@ aw::task<void> aw::loop(F && f)
 			return t;
 		if (detail::has_command(t))
 			return detail::make_command<cmd>(std::move(t), std::move(f));
-		result<void> r = detail::dismiss_task(t);
+		result<void> r = t.dismiss();
 		if (r.has_exception())
 			return r;
 	}
@@ -108,7 +108,7 @@ aw::task<void> aw::loop(Ctx c, StartF && start, UpdateF && update)
 		{
 			for (;;)
 			{
-				result<T> r = detail::dismiss_task(m_task);
+				result<T> r = m_task.dismiss();
 				if (r.has_exception())
 					return r.exception();
 				detail::invoke_loop_update<T>::invoke(m_ctx, m_update, r);
@@ -128,7 +128,7 @@ aw::task<void> aw::loop(Ctx c, StartF && start, UpdateF && update)
 					return nullptr;
 				}
 
-				result<T> r = detail::dismiss_task(m_task);
+				result<T> r = m_task.dismiss();
 				if (r.has_exception())
 					return r.exception();
 				detail::invoke_loop_update<T>::invoke(m_ctx, m_update, r);
@@ -169,7 +169,7 @@ aw::task<void> aw::loop(Ctx c, StartF && start, UpdateF && update)
 		if (detail::has_command(task))
 			return detail::make_command<cmd>(task, std::move(c), std::move(start), std::move(update));
 
-		result<T> r = detail::dismiss_task(task);
+		result<T> r = task.dismiss();
 		if (r.has_exception())
 			return r.exception();
 

@@ -129,7 +129,7 @@ template <typename T>
 void aw::detail::move_task(task<T> & dst, task<T> & src)
 {
 	if (!dst.empty())
-		dismiss_task(dst);
+		dst.dismiss();
 
 	task_kind kind = task_access::get_kind(src);
 	task_access::set_kind(dst, kind);
@@ -206,33 +206,7 @@ auto aw::detail::start_command(command_ptr<T> & cmd, scheduler & sch, task_compl
 	if (u.empty())
 		return nullptr;
 
-	return f(dismiss_task(u));
-}
-
-template <typename T>
-aw::result<T> aw::detail::dismiss_task(task<T> & t)
-{
-	assert(!t.empty());
-
-	task_kind kind = task_access::get_kind(t);
-	task_access::set_kind(t, task_kind::empty);
-	void * storage = task_access::storage(t);
-
-	if (kind == task_kind::value)
-		return dismiss_value<T>(storage);
-
-	if (kind == task_kind::exception)
-	{
-		auto p = static_cast<std::exception_ptr *>(storage);
-		result<T> r(std::move(*p));
-		p->~exception_ptr();
-		return r;
-	}
-
-	auto cmd = static_cast<command<T> **>(storage);
-	result<T> r = (*cmd)->dismiss();
-	delete *cmd;
-	return r;
+	return f(u.dismiss());
 }
 
 template <typename T>
