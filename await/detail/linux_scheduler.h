@@ -1,7 +1,7 @@
 #ifndef AWAIT_DETAIL_WIN32_SCHEDULER_H
 #define AWAIT_DETAIL_WIN32_SCHEDULER_H
 
-#include "task_vtable.h"
+#include "command_intf.h"
 
 struct aw::detail::scheduler
 {
