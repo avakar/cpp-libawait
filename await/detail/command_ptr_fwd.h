@@ -37,6 +37,4 @@ private:
 }
 }
 
-#include "command_ptr_impl.h"
-
 #endif // AWAIT_DETAIL_COMMAND_PTR_H

@@ -57,13 +57,19 @@
     <ClInclude Include="await\detail\task_fwd.h">
       <Filter>detail</Filter>
     </ClInclude>
-    <ClInclude Include="await\detail\scheduler_fwd.h">
-      <Filter>detail</Filter>
-    </ClInclude>
-    <ClInclude Include="await\detail\command_ptr.h">
-      <Filter>detail</Filter>
-    </ClInclude>
     <ClInclude Include="await\detail\command_ptr_impl.h">
+      <Filter>detail</Filter>
+    </ClInclude>
+    <ClInclude Include="await\detail\command_ptr_fwd.h">
+      <Filter>detail</Filter>
+    </ClInclude>
+    <ClInclude Include="await\detail\task_utils_fwd.h">
+      <Filter>detail</Filter>
+    </ClInclude>
+    <ClInclude Include="await\detail\task_utils_impl.h">
+      <Filter>detail</Filter>
+    </ClInclude>
+    <ClInclude Include="await\detail\task_traits_impl.h">
       <Filter>detail</Filter>
     </ClInclude>
   </ItemGroup>
