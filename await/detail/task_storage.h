@@ -1,7 +1,7 @@
 #ifndef AWAIT_DETAIL_TASK_STORAGE_H
 #define AWAIT_DETAIL_TASK_STORAGE_H
 
-#include "task_vtable.h"
+#include "command_intf.h"
 #include <type_traits>
 #include <exception>
 

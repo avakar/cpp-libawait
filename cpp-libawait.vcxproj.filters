@@ -19,12 +19,6 @@
     <ClInclude Include="await\detail\task_storage.h">
       <Filter>detail</Filter>
     </ClInclude>
-    <ClInclude Include="await\detail\task_vtable.h">
-      <Filter>detail</Filter>
-    </ClInclude>
-    <ClInclude Include="await\detail\simple_commands.h">
-      <Filter>detail</Filter>
-    </ClInclude>
     <ClInclude Include="await\detail\then_impl.h">
       <Filter>detail</Filter>
     </ClInclude>
@@ -58,6 +52,21 @@
     </ClInclude>
     <ClInclude Include="await\cancel.h" />
     <ClInclude Include="await\detail\command_impl.h">
+      <Filter>detail</Filter>
+    </ClInclude>
+    <ClInclude Include="await\detail\command_intf.h">
+      <Filter>detail</Filter>
+    </ClInclude>
+    <ClInclude Include="await\detail\task_fwd.h">
+      <Filter>detail</Filter>
+    </ClInclude>
+    <ClInclude Include="await\detail\scheduler_fwd.h">
+      <Filter>detail</Filter>
+    </ClInclude>
+    <ClInclude Include="await\detail\command_ptr.h">
+      <Filter>detail</Filter>
+    </ClInclude>
+    <ClInclude Include="await\detail\command_ptr_impl.h">
       <Filter>detail</Filter>
     </ClInclude>
   </ItemGroup>

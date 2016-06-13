@@ -2,6 +2,7 @@
 #define AWAIT_DETAIL_TASK_TRAITS_H
 
 #include "../result.h"
+#include "task_fwd.h"
 
 namespace aw {
 

@@ -1,7 +1,7 @@
 #ifndef AWAIT_DETAIL_WIN32_SCHEDULER_H
 #define AWAIT_DETAIL_WIN32_SCHEDULER_H
 
-#include "task_vtable.h"
+#include "task_fwd.h"
 #include <windows.h>
 
 struct aw::detail::scheduler

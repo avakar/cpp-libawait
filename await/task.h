@@ -2,15 +2,11 @@
 #define AWAIT_TASK_H
 
 #include "result.h"
-#include "detail/task_access.h"
-#include "detail/task_vtable.h"
-#include "detail/simple_commands.h"
+#include "detail/task_fwd.h"
 #include "detail/task_storage.h"
 #include "detail/then_traits.h"
-#include <type_traits>
 #include <exception>
 #include <stddef.h>
-#include <stdint.h>
 
 namespace aw {
 

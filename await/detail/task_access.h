@@ -1,30 +1,14 @@
 #ifndef AWAIT_DETAIL_TASK_ACCESS_H
 #define AWAIT_DETAIL_TASK_ACCESS_H
 
-#include "task_vtable.h"
+#include "command_intf.h"
 #include "task_traits.h"
+#include "task_fwd.h"
+#include "command_ptr.h"
 #include <stddef.h>
 
 namespace aw {
-
-template <typename T>
-struct task;
-
 namespace detail {
-
-enum class task_kind { empty, value, exception, command };
-
-struct task_access
-{
-	template <typename T>
-	static task_kind get_kind(task<T> const & t);
-
-	template <typename T>
-	static void set_kind(task<T> & t, task_kind kind);
-
-	template <typename T>
-	static void * storage(task<T> & t);
-};
 
 template <typename T>
 void move_value(void * dst, void * src);

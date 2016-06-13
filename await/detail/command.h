@@ -2,8 +2,6 @@
 #define AWAIT_DETAIL_COMMAND_H
 
 #include "../task.h"
-#include "task_vtable.h"
-#include <exception>
 
 namespace aw {
 namespace detail {

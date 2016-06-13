@@ -1,3 +1,5 @@
+#include "command_intf.h"
+
 template <typename I, typename... P>
 aw::task<typename I::value_type> aw::detail::make_command(P &&... p)
 {

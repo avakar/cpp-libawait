@@ -1,3 +1,4 @@
+#include "task_access.h"
 #include <assert.h>
 #include <new>
 #include <tuple>
@@ -11,7 +12,85 @@ struct invoke_and_taskify_impl;
 template <>
 struct invoke_and_taskify_impl<void>;
 
+template <typename T, typename U>
+task_kind construct_result(void * storage, result<U> && v) noexcept;
+
+template <typename T, typename U>
+task_kind construct_result(void * storage, result<U> const & v) noexcept;
+
+template <>
+task_kind construct_result<void, void>(void * storage, result<void> && v) noexcept;
+
+template <>
+task_kind construct_result<void, void>(void * storage, result<void> const & v) noexcept;
+
 }
+}
+
+template <typename T, typename U>
+aw::detail::task_kind aw::detail::construct_result(void * storage, result<U> && v) noexcept
+{
+	if (v.has_exception())
+	{
+		new(storage) std::exception_ptr(std::move(v.exception()));
+		return detail::task_kind::exception;
+	}
+
+	try
+	{
+		new(storage) T(std::move(v.value()));
+		return detail::task_kind::value;
+	}
+	catch (...)
+	{
+		new(storage) std::exception_ptr(std::current_exception());
+		return detail::task_kind::exception;
+	}
+}
+
+template <typename T, typename U>
+aw::detail::task_kind aw::detail::construct_result(void * storage, result<U> const & v) noexcept
+{
+	if (v.has_exception())
+	{
+		new(storage) std::exception_ptr(v.exception());
+		return detail::task_kind::exception;
+	}
+
+	try
+	{
+		new(storage) T(v.value());
+		return detail::task_kind::value;
+	}
+	catch (...)
+	{
+		new(storage) std::exception_ptr(std::current_exception());
+		return detail::task_kind::exception;
+	}
+}
+
+template <>
+inline aw::detail::task_kind aw::detail::construct_result<void, void>(void * storage, result<void> && v) noexcept
+{
+	if (v.has_exception())
+	{
+		new(storage) std::exception_ptr(std::move(v.exception()));
+		return detail::task_kind::exception;
+	}
+
+	return detail::task_kind::value;
+}
+
+template <>
+inline aw::detail::task_kind aw::detail::construct_result<void, void>(void * storage, result<void> const & v) noexcept
+{
+	if (v.has_exception())
+	{
+		new(storage) std::exception_ptr(v.exception());
+		return detail::task_kind::exception;
+	}
+
+	return detail::task_kind::value;
 }
 
 template <typename T>
