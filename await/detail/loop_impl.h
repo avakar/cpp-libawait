@@ -76,10 +76,11 @@ aw::task<void> aw::loop(Ctx c, StartF && start, UpdateF && update)
 			}
 		}
 
-		void cancel(detail::scheduler & sch)
+		task<void> cancel(detail::scheduler & sch)
 		{
 			(void)sch;
 			// XXX
+			return nullptr;
 		}
 
 	private:

@@ -79,10 +79,11 @@ struct sock_read_command
 		return nullptr;
 	}
 
-	void cancel(aw::detail::scheduler & sch)
+	aw::task<size_t> cancel(aw::detail::scheduler & sch)
 	{
 		(void)sch;
 		CancelIoEx((HANDLE)m_sock, &m_ov);
+		return nullptr;
 	}
 
 	completion_result on_completion(aw::detail::scheduler & sch)
@@ -148,10 +149,11 @@ struct sock_write_command
 		return nullptr;
 	}
 
-	void cancel(aw::detail::scheduler & sch)
+	aw::task<size_t> cancel(aw::detail::scheduler & sch)
 	{
 		(void)sch;
 		CancelIoEx((HANDLE)m_sock, &m_ov);
+		return nullptr;
 	}
 
 	completion_result on_completion(aw::detail::scheduler & sch)
@@ -264,10 +266,10 @@ struct connect_impl
 		return nullptr;
 	}
 
-	void cancel(aw::detail::scheduler & sch)
+	aw::task<value_type> cancel(aw::detail::scheduler & sch)
 	{
 		sch.remove_handle(m_h, *this);
-		m_sink->on_completion(sch, std::make_exception_ptr(aw::task_aborted()));
+		return std::make_exception_ptr(aw::task_aborted());
 	}
 
 	aw::task<std::shared_ptr<aw::stream>> complete()
@@ -488,14 +490,14 @@ task<void> win32_wait_handle(HANDLE h, Cancel && cancel_fn)
 			return nullptr;
 		}
 
-		void cancel(aw::detail::scheduler & sch)
+		task<void> cancel(aw::detail::scheduler & sch)
 		{
 			completion_result cr = m_cancel_fn();
-			if (cr == completion_result::finish)
-			{
-				sch.remove_handle(m_h, *this);
-				m_sink->on_completion(sch, std::make_exception_ptr(aw::task_aborted()));
-			}
+			if (cr != completion_result::finish)
+				return nullptr;
+
+			sch.remove_handle(m_h, *this);
+			return std::make_exception_ptr(aw::task_aborted());
 		}
 
 	private:

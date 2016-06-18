@@ -28,7 +28,7 @@ aw::task<typename I::value_type> aw::detail::make_command(P &&... p)
 				}
 			}
 
-			result<T> dismiss() noexcept override
+			aw::result<T> dismiss() noexcept override
 			{
 				try
 				{
@@ -40,14 +40,15 @@ aw::task<typename I::value_type> aw::detail::make_command(P &&... p)
 				}
 			}
 
-			void cancel(scheduler & sch) noexcept override
+			aw::task<T> cancel(scheduler & sch) noexcept override
 			{
 				try
 				{
-					this->I::cancel(sch);
+					return this->I::cancel(sch);
 				}
 				catch (...)
 				{
+					return std::current_exception();
 				}
 			}
 		};

@@ -21,7 +21,7 @@ struct command
 	virtual ~command() {}
 	virtual result<T> dismiss() noexcept = 0;
 	virtual task<T> start(scheduler & sch, task_completion<T> & sink) noexcept = 0;
-	virtual void cancel(scheduler & sch) noexcept = 0;
+	virtual task<T> cancel(scheduler & sch) noexcept = 0;
 };
 
 }
