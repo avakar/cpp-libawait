@@ -58,12 +58,12 @@ struct aw::detail::invoke_and_taskify_impl<void>
 };
 
 template <typename F, typename... P>
-auto aw::detail::invoke_and_taskify(F && f, P &&... p) noexcept -> typename invoke_and_taskify_traits<F, P...>::task_type
+auto aw::detail::invoke(F && f, P &&... p) noexcept -> typename invoke_and_taskify_traits<F, P...>::task_type
 {
 	typedef typename std::result_of<F(P &&...)>::type R;
 	try
 	{
-		return invoke_and_taskify_impl<R>::invoke_and_taskify(std::move(f), std::forward<P>(p)...);
+		return invoke_and_taskify_impl<R>::invoke_and_taskify(std::forward<F>(f), std::forward<P>(p)...);
 	}
 	catch (...)
 	{

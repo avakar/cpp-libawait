@@ -6,7 +6,7 @@ auto aw::detail::then_traits<T, F>::invoke(result<T> && t, F && f) noexcept
 	-> return_type
 {
 	assert(t.has_value());
-	return invoke_and_taskify(std::move(f), std::move(t.value()));
+	return detail::invoke(std::move(f), std::move(t.value()));
 }
 
 template <typename F>
@@ -16,7 +16,7 @@ auto aw::detail::then_traits<void, F>::invoke(result<void> && t, F && f) noexcep
 	(void)t;
 
 	assert(t.has_value());
-	return invoke_and_taskify(std::move(f));
+	return detail::invoke(std::move(f));
 }
 
 template <typename T>
@@ -54,7 +54,7 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 
 	assert(m_kind != detail::task_kind::empty);
 	if (m_kind != detail::task_kind::command)
-		return detail::invoke_and_taskify(std::move(f), this->dismiss());
+		return detail::invoke(std::move(f), this->dismiss());
 
 	struct impl
 		: private detail::task_completion<T>
@@ -68,7 +68,7 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 
 		result<U> dismiss()
 		{
-			task<U> r = detail::invoke_and_taskify(std::move(m_f), m_cmd.dismiss());
+			task<U> r = detail::invoke(std::move(m_f), m_cmd.dismiss());
 			return r.dismiss();
 		}
 
@@ -76,7 +76,7 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 		{
 			m_sink = &sink;
 			return start_command(m_cmd, sch, *this, [this](result<T> && r) {
-				return detail::invoke_and_taskify(std::move(m_f), std::move(r));
+				return detail::invoke(std::move(m_f), std::move(r));
 			});
 		}
 
@@ -86,7 +86,7 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 			if (t.empty())
 				return nullptr;
 
-			return detail::invoke_and_taskify(std::move(m_f), t.dismiss());
+			return detail::invoke(std::move(m_f), t.dismiss());
 		}
 
 	private:
@@ -97,13 +97,13 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 			task<U> u;
 			if (!detail::has_command(t))
 			{
-				u = detail::invoke_and_taskify(std::move(m_f), t.dismiss());
+				u = detail::invoke(std::move(m_f), t.dismiss());
 			}
 			else
 			{
 				m_cmd = detail::fetch_command(t);
 				u = start_command(m_cmd, sch, *this, [this](result<T> && r) {
-					return detail::invoke_and_taskify(std::move(m_f), std::move(r));
+					return detail::invoke(std::move(m_f), std::move(r));
 				});
 			}
 

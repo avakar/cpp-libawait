@@ -51,7 +51,7 @@ struct invoke_and_taskify_traits
 };
 
 template <typename F, typename... P>
-auto invoke_and_taskify(F && f, P &&... p) noexcept -> typename invoke_and_taskify_traits<F, P...>::task_type;
+auto invoke(F && f, P &&... p) noexcept -> typename invoke_and_taskify_traits<F, P...>::task_type;
 
 }
 }
