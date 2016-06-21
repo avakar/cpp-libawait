@@ -174,6 +174,15 @@ aw::detail::command_ptr<T> aw::detail::fetch_command(task<T> & t)
 }
 
 template <typename T>
+aw::task<T> aw::detail::from_command(command_ptr<T> & t)
+{
+	aw::task<T> task;
+	new(task_access::storage(task)) command<T> *(t.release());
+	task_access::set_kind(task, task_kind::command);
+	return task;
+}
+
+template <typename T>
 bool aw::detail::start_command(task<T> & t, scheduler & sch, task_completion<T> & sink)
 {
 	assert(!t.empty());

@@ -53,6 +53,9 @@ template <typename T>
 command_ptr<T> fetch_command(task<T> & t);
 
 template <typename T>
+task<T> from_command(command_ptr<T> & t);
+
+template <typename T>
 bool start_command(task<T> & t, scheduler & sch, task_completion<T> & sink);
 
 template <typename T, typename F>
