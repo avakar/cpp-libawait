@@ -24,6 +24,39 @@ struct invoke_loop_update<void>
 	}
 };
 
+template <typename T>
+struct schroedinger
+{
+	template <typename... P>
+	void construct(P &&... p)
+	{
+		new(&m_buf) T(std::forward<P>(p)...);
+	}
+
+	void destroy()
+	{
+		this->get()->~T();
+	}
+
+	T * get()
+	{
+		return reinterpret_cast<T *>(&m_buf);
+	}
+
+	T & operator*()
+	{
+		return *this->get();
+	}
+
+	T * operator->()
+	{
+		return this->get();
+	}
+
+private:
+	typename std::aligned_union<0, T>::type m_buf;
+};
+
 }
 }
 
@@ -32,86 +65,188 @@ aw::task<void> aw::loop(Ctx c, StartF && start, UpdateF && update)
 {
 	typedef typename detail::task_traits<decltype(start(c))>::value_type T;
 
-	struct cmd
-		: private detail::task_completion<T>
+	struct coroutine
 	{
-		typedef void value_type;
-
-		cmd(task<T> & task, Ctx && ctx, StartF && start, UpdateF && update)
-			: m_task(std::move(task)), m_ctx(std::move(ctx)), m_start(std::move(start)), m_update(std::move(update)), m_sink(nullptr)
+	public:
+		coroutine()
+			: state(init)
 		{
 		}
 
-		result<void> dismiss()
+		coroutine(coroutine && o)
+			: state(o.state)
 		{
-			for (;;)
+			o.state = init;
+
+			switch (state)
 			{
-				result<T> r = m_task.dismiss();
-				if (r.has_exception())
-					return r.exception();
-				detail::invoke_loop_update<T>::invoke(m_ctx, m_update, r);
-				m_task = m_start(m_ctx);
-				if (m_task.empty())
-					return aw::value();
+			case awaiting_cmd:
+				cmd = std::move(o.cmd);
+				break;
+			case done:
+				res.construct(std::move(*o.res));
+				o.res.destroy();
+				break;
 			}
 		}
 
-		task<void> start(detail::scheduler & sch, detail::task_completion<void> & sink)
+		~coroutine()
 		{
+			assert(state == init || state == done);
+			if (state == done)
+				res.destroy();
+		}
+
+		void process(Ctx & c, StartF & start, UpdateF & update)
+		{
+			assert(state != done);
+
+			if (state == awaiting_cmd)
+				goto resume_point;
+
 			for (;;)
 			{
-				if (detail::start_command(m_task, sch, *this))
 				{
-					m_sink = &sink;
-					return nullptr;
+					task<T> task = detail::invoke(start, c);
+					if (task.empty())
+					{
+						res.construct(aw::value());
+						state = done;
+						return;
+					}
+
+					cmd = detail::fetch_command(task);
+					if (cmd)
+					{
+						state = awaiting_cmd;
+						return;
+					}
+
+					r.construct(task.dismiss());
 				}
 
-				result<T> r = m_task.dismiss();
-				if (r.has_exception())
-					return r.exception();
-				detail::invoke_loop_update<T>::invoke(m_ctx, m_update, r);
-				m_task = m_start(m_ctx);
-				if (m_task.empty())
-					return aw::value();
+			resume_point:
+				if (r->has_exception())
+				{
+					res.construct(std::move(r->exception()));
+					r.destroy();
+					state = done;
+					return;
+				}
+
+				detail::invoke_loop_update<T>::invoke(c, update, *r); // XXX exception
+				r.destroy();
 			}
 		}
 
-		task<void> cancel(detail::scheduler & sch)
+		enum state_t { init, awaiting_cmd, done };
+		state_t state;
+		detail::command_ptr<T> cmd;
+		detail::schroedinger<result<T>> r;
+		detail::schroedinger<result<void>> res;
+	};
+
+	struct cmd2
+		: detail::command<void>, detail::task_completion<T>
+	{
+		cmd2(Ctx & c, StartF & start, UpdateF & update, coroutine & coro)
+			: m_ctx(std::move(c)), m_start(std::move(start)), m_update(std::move(update)), m_coro(std::move(coro))
 		{
-			(void)sch;
-			// XXX
-			return nullptr;
+		}
+
+		result<void> dismiss() noexcept override
+		{
+			while (m_coro.state == coroutine::awaiting_cmd)
+			{
+				m_coro.r.construct(m_coro.cmd.dismiss());
+				m_coro.process(m_ctx, m_start, m_update);
+			}
+
+			assert(m_coro.state == coroutine::done);
+			return std::move(*m_coro.res);
+		}
+
+		task<void> start(detail::scheduler & sch, detail::task_completion<void> & sink) noexcept override
+		{
+			m_sink = &sink;
+			for (;;)
+			{
+				task<T> t = m_coro.cmd.start(sch, *this);
+				if (t.empty())
+					return nullptr;
+
+				m_coro.r.construct(t.dismiss());
+				m_coro.process(m_ctx, m_start, m_update);
+
+				if (m_coro.state == coroutine::done)
+					return std::move(*m_coro.res);
+			}
+		}
+
+		task<void> cancel(detail::scheduler & sch) noexcept override
+		{
+			for (;;)
+			{
+				task<T> t = m_coro.cmd.cancel(sch);
+				if (t.empty())
+					return nullptr;
+
+				m_coro.r.construct(t.dismiss());
+				m_coro.process(m_ctx, m_start, m_update);
+
+				if (m_coro.state == coroutine::done)
+					return std::move(*m_coro.res);
+			}
 		}
 
 	private:
 		void on_completion(detail::scheduler & sch, task<T> && t) override
 		{
-			detail::mark_complete(m_task);
-			m_task = std::move(t);
-			task<void> u = this->start(sch, *m_sink);
-			if (!u.empty())
-				m_sink->on_completion(sch, std::move(u));
+			m_coro.cmd.complete();
+
+			m_coro.cmd = detail::fetch_command(t);
+			if (!m_coro.cmd)
+			{
+				m_coro.r.construct(t.dismiss());
+				m_coro.process(m_ctx, m_start, m_update);
+				if (m_coro.state == coroutine::done)
+					return m_sink->on_completion(sch, *m_coro.res);
+			}
+
+			task<void> tt = this->start(sch, *m_sink);
+			if (!tt.empty())
+				m_sink->on_completion(sch, std::move(tt));
 		}
 
-		task<T> m_task;
+		detail::task_completion<void> * m_sink;
 		Ctx m_ctx;
 		StartF m_start;
 		UpdateF m_update;
-		detail::task_completion<void> * m_sink;
+		coroutine m_coro;
 	};
 
-	for (;;)
+	coroutine coro;
+	coro.process(c, start, update);
+	assert(coro.state != coroutine::init);
+
+	if (coro.state == coroutine::done)
+		return std::move(*coro.res);
+
+	try
 	{
-		task<T> task = start(c);
-		if (task.empty())
-			return aw::value();
-		if (detail::has_command(task))
-			return detail::make_command<cmd>(task, std::move(c), std::move(start), std::move(update));
-
-		result<T> r = task.dismiss();
-		if (r.has_exception())
-			return r.exception();
-
-		detail::invoke_loop_update<T>::invoke(c, update, r);
+		detail::command_ptr<void> p(new cmd2(c, start, update, coro));
+		return detail::from_command(p);
 	}
+	catch (...)
+	{
+		for (;;)
+		{
+			coro.r.construct(coro.cmd.dismiss());
+			coro.process(c, start, update);
+			assert(coro.state != coroutine::init);
+			if (coro.state == coroutine::done)
+				return std::move(*coro.res);
+		}
+	}
+
 }
