@@ -34,9 +34,9 @@ aw::task<void> aw::wait_ms(int64_t ms)
 				CloseHandle(m_h);
 		}
 
-		result<void> dismiss()
+		result<void> dismiss(cancel_info ci)
 		{
-			return std::make_exception_ptr(aw::task_aborted());
+			return ci;
 		}
 
 		impl(impl && o)

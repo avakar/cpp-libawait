@@ -54,9 +54,9 @@ struct sock_read_command
 	{
 	}
 
-	aw::result<size_t> dismiss()
+	aw::result<size_t> dismiss(aw::cancel_info ci)
 	{
-		return std::make_exception_ptr(aw::task_aborted());
+		return ci;
 	}
 
 	aw::task<value_type> start(aw::detail::scheduler & sch, aw::detail::task_completion<value_type> & sink)
@@ -124,9 +124,9 @@ struct sock_write_command
 	{
 	}
 
-	aw::result<size_t> dismiss()
+	aw::result<size_t> dismiss(aw::cancel_info ci)
 	{
-		return std::make_exception_ptr(aw::task_aborted());
+		return ci;
 	}
 
 	aw::task<value_type> start(aw::detail::scheduler & sch, aw::detail::task_completion<value_type> & sink)
@@ -254,9 +254,9 @@ struct connect_impl
 		return *this;
 	}
 
-	aw::result<std::shared_ptr<aw::stream>> dismiss()
+	aw::result<std::shared_ptr<aw::stream>> dismiss(aw::cancel_info ci)
 	{
-		return std::make_exception_ptr(aw::task_aborted());
+		return ci;
 	}
 
 	aw::task<value_type> start(aw::detail::scheduler & sch, aw::detail::task_completion<value_type> & sink)
@@ -478,9 +478,9 @@ task<void> win32_wait_handle(HANDLE h, Cancel && cancel_fn)
 		{
 		}
 
-		result<void> dismiss()
+		result<void> dismiss(cancel_info ci)
 		{
-			return std::make_exception_ptr(aw::task_aborted());
+			return ci;
 		}
 
 		task<void> start(scheduler & sch, task_completion<void> & sink)

@@ -154,11 +154,11 @@ aw::task<void> aw::loop(Ctx c, StartF && start, UpdateF && update)
 		{
 		}
 
-		result<void> dismiss() noexcept override
+		result<void> dismiss(cancel_info ci) noexcept override
 		{
 			while (m_coro.state == coroutine::awaiting_cmd)
 			{
-				m_coro.r.construct(m_coro.cmd.dismiss());
+				m_coro.r.construct(m_coro.cmd.dismiss(ci));
 				m_coro.process(m_ctx, m_start, m_update);
 			}
 
@@ -241,7 +241,7 @@ aw::task<void> aw::loop(Ctx c, StartF && start, UpdateF && update)
 	{
 		for (;;)
 		{
-			coro.r.construct(coro.cmd.dismiss());
+			coro.r.construct(coro.cmd.dismiss(std::current_exception()));
 			coro.process(c, start, update);
 			assert(coro.state != coroutine::init);
 			if (coro.state == coroutine::done)

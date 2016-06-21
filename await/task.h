@@ -32,6 +32,7 @@ struct task
 	explicit operator bool() const;
 
 	result<T> dismiss() noexcept;
+	result<T> dismiss(cancel_info ci) noexcept;
 	void clear();
 
 	template <typename F>

@@ -7,9 +7,9 @@ aw::task<void> aw::postpone()
 	{
 		typedef void value_type;
 
-		result<void> dismiss()
+		result<void> dismiss(cancel_info ci)
 		{
-			return std::make_exception_ptr(aw::task_aborted());
+			return ci;
 		}
 
 		task<void> start(detail::scheduler & sch, detail::task_completion<void> & sink)

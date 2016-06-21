@@ -25,6 +25,7 @@ struct command_ptr
 	command<T> * release() noexcept;
 
 	result<T> dismiss() noexcept;
+	result<T> dismiss(cancel_info ci) noexcept;
 	task<T> start(scheduler & sch, task_completion<T> & sink) noexcept;
 	task<T> cancel(scheduler & sch) noexcept;
 	void complete() noexcept;

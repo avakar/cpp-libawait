@@ -3,6 +3,7 @@
 
 #include "../result.h"
 #include "task_fwd.h"
+#include "../cancel.h"
 
 namespace aw {
 namespace detail {
@@ -19,7 +20,7 @@ template <typename T>
 struct command
 {
 	virtual ~command() {}
-	virtual result<T> dismiss() noexcept = 0;
+	virtual result<T> dismiss(cancel_info ci) noexcept = 0;
 	virtual task<T> start(scheduler & sch, task_completion<T> & sink) noexcept = 0;
 	virtual task<T> cancel(scheduler & sch) noexcept = 0;
 };

@@ -66,10 +66,10 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 		{
 		}
 
-		result<U> dismiss()
+		result<U> dismiss(cancel_info ci)
 		{
-			task<U> r = detail::invoke(std::move(m_f), m_cmd.dismiss());
-			return r.dismiss();
+			task<U> r = detail::invoke(std::move(m_f), m_cmd.dismiss(ci));
+			return r.dismiss(ci);
 		}
 
 		task<U> start(detail::scheduler & sch, detail::task_completion<U> & sink)

@@ -28,11 +28,11 @@ aw::task<typename I::value_type> aw::detail::make_command(P &&... p)
 				}
 			}
 
-			aw::result<T> dismiss() noexcept override
+			aw::result<T> dismiss(aw::cancel_info ci) noexcept override
 			{
 				try
 				{
-					return this->I::dismiss();
+					return this->I::dismiss(ci);
 				}
 				catch (...)
 				{

@@ -5,6 +5,8 @@
 
 namespace aw {
 
+typedef std::exception_ptr cancel_info;
+
 struct task_aborted
 	: std::exception
 {

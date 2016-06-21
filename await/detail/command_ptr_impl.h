@@ -78,9 +78,15 @@ aw::detail::command<T> * aw::detail::command_ptr<T>::release() noexcept
 template <typename T>
 aw::result<T> aw::detail::command_ptr<T>::dismiss() noexcept
 {
+	return this->dismiss(std::make_exception_ptr(task_aborted()));
+}
+
+template <typename T>
+aw::result<T> aw::detail::command_ptr<T>::dismiss(cancel_info ci) noexcept
+{
 	assert(m_ptr != nullptr);
 
-	result<T> r = m_ptr->dismiss();
+	result<T> r = m_ptr->dismiss(ci);
 	this->complete();
 	return r;
 }

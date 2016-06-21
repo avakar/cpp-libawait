@@ -67,6 +67,12 @@ aw::task<T>::task(result<U> const & v)
 template <typename T>
 aw::result<T> aw::task<T>::dismiss() noexcept
 {
+	return this->dismiss(std::make_exception_ptr(task_aborted()));
+}
+
+template <typename T>
+aw::result<T> aw::task<T>::dismiss(cancel_info ci) noexcept
+{
 	assert(m_kind != detail::task_kind::empty);
 
 	detail::task_kind kind = m_kind;
@@ -86,7 +92,7 @@ aw::result<T> aw::task<T>::dismiss() noexcept
 	assert(kind == detail::task_kind::command);
 
 	detail::command<T> *& p = reinterpret_cast<detail::command<T> *&>(m_storage);
-	result<T> r = p->dismiss();
+	result<T> r = p->dismiss(ci);
 	delete p;
 	return r;
 }
