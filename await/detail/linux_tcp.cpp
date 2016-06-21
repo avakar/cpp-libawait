@@ -39,9 +39,9 @@ struct poll_op_cmd
 	{
 	}
 
-	aw::result<value_type> dismiss()
+	aw::result<value_type> dismiss(aw::cancel_info ci)
 	{
-		return std::make_exception_ptr(aw::task_aborted());
+		return ci;
 	}
 
 	aw::task<value_type> start(aw::detail::scheduler & sch,

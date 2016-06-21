@@ -43,9 +43,9 @@ aw::task<void> aw::wait_ms(int64_t ms)
 			return *this;
 		}
 
-		result<void> dismiss()
+		result<void> dismiss(cancel_info ci)
 		{
-			return std::make_exception_ptr(aw::task_aborted());
+			return ci;
 		}
 
 		task<void> start(detail::scheduler & sch, detail::task_completion<void> & sink)

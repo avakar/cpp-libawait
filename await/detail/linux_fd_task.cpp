@@ -16,9 +16,9 @@ aw::task<short> aw::detail::linux_fd_task(int fd, short events)
 		{
 		}
 
-		aw::result<short> dismiss()
+		aw::result<short> dismiss(aw::cancel_info ci)
 		{
-			return std::make_exception_ptr(aw::task_aborted());
+			return ci;
 		}
 
 		aw::task<short> start(scheduler & sch, task_completion<short> & sink)
