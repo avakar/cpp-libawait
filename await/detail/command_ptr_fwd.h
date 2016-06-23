@@ -29,6 +29,7 @@ struct command_ptr
 	task<T> start(scheduler & sch, task_completion<T> & sink) noexcept;
 	task<T> cancel(scheduler & sch) noexcept;
 	void complete() noexcept;
+	void complete(task<T> & t) noexcept;
 
 	command_ptr(command_ptr && o) noexcept;
 	command_ptr & operator=(command_ptr o) noexcept;

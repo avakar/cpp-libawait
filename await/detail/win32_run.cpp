@@ -66,6 +66,11 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 			return s;
 		}
 
+		cancel_info get_cancel_info() const noexcept
+		{
+			return nullptr;
+		}
+
 		void on_completion(scheduler & sch, task<void> && t) override
 		{
 			assert(&sch == this);

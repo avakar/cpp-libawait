@@ -10,6 +10,8 @@ namespace detail {
 
 struct scheduler;
 
+cancel_info get_cancel_info(scheduler & sch);
+
 template <typename T>
 struct task_completion
 {

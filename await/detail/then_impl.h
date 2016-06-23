@@ -92,19 +92,18 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 	private:
 		void on_completion(detail::scheduler & sch, task<T> && t) override
 		{
-			m_cmd.complete();
+			m_cmd.complete(t);
 
 			task<U> u;
-			if (!detail::has_command(t))
+			if (m_cmd)
 			{
-				u = detail::invoke(std::move(m_f), t.dismiss());
-			}
-			else
-			{
-				m_cmd = detail::fetch_command(t);
 				u = start_command(m_cmd, sch, *this, [this](result<T> && r) {
 					return detail::invoke(std::move(m_f), std::move(r));
 				});
+			}
+			else
+			{
+				u = detail::invoke(std::move(m_f), t.dismiss());
 			}
 
 			if (!u.empty())

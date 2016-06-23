@@ -129,3 +129,11 @@ void aw::detail::command_ptr<T>::complete() noexcept
 	delete m_ptr;
 	m_ptr = nullptr;
 }
+
+template <typename T>
+void aw::detail::command_ptr<T>::complete(task<T> & t) noexcept
+{
+	delete m_ptr;
+	m_ptr = nullptr;
+	*this = detail::fetch_command(t);
+}
