@@ -28,7 +28,7 @@ aw::task<short> aw::detail::linux_fd_task(int fd, short events)
 			return nullptr;
 		}
 
-		aw::task<short> cancel(scheduler & sch)
+		aw::result<short> cancel(scheduler & sch)
 		{
 			// XXX
 			sch.remove_fd(m_fd, *this);

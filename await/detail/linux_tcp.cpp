@@ -52,7 +52,7 @@ struct poll_op_cmd
 		return nullptr;
 	}
 
-	aw::task<value_type> cancel(aw::detail::scheduler & sch)
+	aw::result<value_type> cancel(aw::detail::scheduler & sch)
 	{
 		sch.remove_fd(m_fd, *this);
 		return std::make_exception_ptr(aw::task_aborted());

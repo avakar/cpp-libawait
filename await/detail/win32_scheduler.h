@@ -23,12 +23,7 @@ struct aw::detail::scheduler
 	};
 
 	virtual sleeper_node * register_sleeper(completion_sink & sink) = 0;
+	virtual void wait_for_sleeper(sleeper_node & sleeper) = 0;
 };
-
-inline aw::cancel_info aw::detail::get_cancel_info(aw::detail::scheduler & sch)
-{
-	return sch.get_cancel_info();
-}
-
 
 #endif // AWAIT_DETAIL_WIN32_SCHEDULER_H

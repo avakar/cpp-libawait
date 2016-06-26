@@ -3,6 +3,11 @@
 #include "intrusive_list.h"
 #include <stdexcept>
 
+aw::cancel_info aw::detail::get_cancel_info(aw::detail::scheduler & sch)
+{
+	return sch.get_cancel_info();
+}
+
 aw::result<void> aw::detail::try_run_impl(task<void> && t)
 {
 	assert(!t.empty());
@@ -14,7 +19,7 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 			: sleeper_node, intrusive_hook
 		{
 			sleeper_node_impl(fake_scheduler & sch, completion_sink & sink)
-				: m_sch(sch), m_sink(sink)
+				: m_sch(sch), m_sink(sink), m_complete(false)
 			{
 			}
 
@@ -22,10 +27,12 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 			{
 				m_sch.m_sleepers.remove(*this);
 				m_sch.m_woken_sleepers.push_back(*this);
+				m_complete = true;
 			}
 
 			fake_scheduler & m_sch;
 			completion_sink & m_sink;
+			bool m_complete;
 		};
 
 		explicit fake_scheduler(task<void> & t)
@@ -64,6 +71,13 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 			sleeper_node_impl * s = new sleeper_node_impl(*this, sink);
 			m_sleepers.push_back(*s);
 			return s;
+		}
+
+		void wait_for_sleeper(sleeper_node & sleeper) override
+		{
+			sleeper_node_impl & impl = static_cast<sleeper_node_impl &>(sleeper);
+			while (!impl.m_complete)
+				SleepEx(INFINITE, TRUE);
 		}
 
 		cancel_info get_cancel_info() const noexcept

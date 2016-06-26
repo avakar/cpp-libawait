@@ -183,15 +183,11 @@ aw::task<void> aw::loop(Ctx c, StartF && start, UpdateF && update)
 			}
 		}
 
-		task<void> cancel(detail::scheduler & sch) noexcept override
+		result<void> cancel(detail::scheduler & sch) noexcept override
 		{
 			for (;;)
 			{
-				task<T> t = m_coro.cmd.cancel(sch);
-				if (t.empty())
-					return nullptr;
-
-				m_coro.r.construct(t.dismiss());
+				m_coro.r.construct(m_coro.cmd.cancel(sch));
 				m_coro.process(m_ctx, m_start, m_update);
 
 				if (m_coro.state == coroutine::done)

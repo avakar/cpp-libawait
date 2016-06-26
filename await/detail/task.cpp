@@ -19,11 +19,10 @@ aw::task<void> aw::postpone()
 			return aw::value();
 		}
 
-		task<void> cancel(detail::scheduler & sch)
+		result<void> cancel(detail::scheduler & sch)
 		{
-			(void)sch;
 			assert(false);
-			return nullptr;
+			return detail::get_cancel_info(sch);
 		}
 	};
 

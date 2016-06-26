@@ -111,16 +111,13 @@ aw::task<T> aw::detail::command_ptr<T>::start(scheduler & sch, task_completion<T
 }
 
 template <typename T>
-aw::task<T> aw::detail::command_ptr<T>::cancel(scheduler & sch) noexcept
+aw::result<T> aw::detail::command_ptr<T>::cancel(scheduler & sch) noexcept
 {
 	assert(m_ptr != nullptr);
 
-	task<T> t = m_ptr->cancel(sch);
-	if (t.empty())
-		return nullptr;
-
+	result<T> r = m_ptr->cancel(sch);
 	this->complete();
-	return t.dismiss();
+	return r;
 }
 
 template <typename T>

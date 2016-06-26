@@ -55,7 +55,7 @@ aw::task<void> aw::wait_ms(int64_t ms)
 			return nullptr;
 		}
 
-		task<void> cancel(detail::scheduler & sch)
+		result<void> cancel(detail::scheduler & sch)
 		{
 			sch.remove_fd(m_fd, *this);
 			return std::make_exception_ptr(aw::task_aborted());

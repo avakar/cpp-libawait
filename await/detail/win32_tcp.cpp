@@ -79,11 +79,14 @@ struct sock_read_command
 		return nullptr;
 	}
 
-	aw::task<size_t> cancel(aw::detail::scheduler & sch)
+	aw::result<size_t> cancel(aw::detail::scheduler & sch)
 	{
-		(void)sch;
 		CancelIoEx((HANDLE)m_sock, &m_ov);
-		return nullptr;
+		sch.wait_for_sleeper(*m_sleeper_node);
+
+		if (m_ov.Offset != 0)
+			return std::make_exception_ptr(aw::detail::win32_error((DWORD)m_ov.Offset));
+		return aw::value((size_t)m_ov.Internal);
 	}
 
 	completion_result on_completion(aw::detail::scheduler & sch)
@@ -149,11 +152,14 @@ struct sock_write_command
 		return nullptr;
 	}
 
-	aw::task<size_t> cancel(aw::detail::scheduler & sch)
+	aw::result<size_t> cancel(aw::detail::scheduler & sch)
 	{
-		(void)sch;
 		CancelIoEx((HANDLE)m_sock, &m_ov);
-		return nullptr;
+		sch.wait_for_sleeper(*m_sleeper_node);
+
+		if (m_ov.Offset != 0)
+			return std::make_exception_ptr(aw::detail::win32_error((DWORD)m_ov.Offset));
+		return aw::value((size_t)m_ov.Internal);
 	}
 
 	completion_result on_completion(aw::detail::scheduler & sch)
@@ -266,7 +272,7 @@ struct connect_impl
 		return nullptr;
 	}
 
-	aw::task<value_type> cancel(aw::detail::scheduler & sch)
+	aw::result<value_type> cancel(aw::detail::scheduler & sch)
 	{
 		sch.remove_handle(m_h, *this);
 		return std::make_exception_ptr(aw::task_aborted());
@@ -490,13 +496,17 @@ task<void> win32_wait_handle(HANDLE h, Cancel && cancel_fn)
 			return nullptr;
 		}
 
-		task<void> cancel(aw::detail::scheduler & sch)
+		result<void> cancel(aw::detail::scheduler & sch)
 		{
+			sch.remove_handle(m_h, *this);
+
 			completion_result cr = m_cancel_fn();
 			if (cr != completion_result::finish)
-				return nullptr;
+			{
+				WaitForSingleObject(m_h, INFINITE);
+				return aw::value();
+			}
 
-			sch.remove_handle(m_h, *this);
 			return std::make_exception_ptr(aw::task_aborted());
 		}
 

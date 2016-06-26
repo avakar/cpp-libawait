@@ -40,7 +40,7 @@ aw::task<typename I::value_type> aw::detail::make_command(P &&... p)
 				}
 			}
 
-			aw::task<T> cancel(scheduler & sch) noexcept override
+			aw::result<T> cancel(scheduler & sch) noexcept override
 			{
 				try
 				{
