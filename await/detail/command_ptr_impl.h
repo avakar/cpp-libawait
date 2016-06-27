@@ -68,6 +68,12 @@ aw::detail::command<T> * aw::detail::command_ptr<T>::operator->() const noexcept
 }
 
 template <typename T>
+aw::detail::command<T> * aw::detail::command_ptr<T>::get() noexcept
+{
+	return m_ptr;
+}
+
+template <typename T>
 aw::detail::command<T> * aw::detail::command_ptr<T>::release() noexcept
 {
 	command<T> * res = m_ptr;

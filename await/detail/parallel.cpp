@@ -158,6 +158,25 @@ private:
 
 task<void> aw::operator|(task<void> && lhs, task<void> && rhs)
 {
+	if (command_ptr<void> lhs_cmd = fetch_command(lhs))
+	{
+		if (auto p = dynamic_cast<parallel_cmd *>(lhs_cmd.get()))
+		{
+			lhs_cmd.release();
+
+			std::exception_ptr e = p->add_cmd(rhs);
+			if (e)
+			{
+				delete p;
+				return e;
+			}
+
+			return from_command(p);
+		}
+
+		lhs = from_command(lhs_cmd);
+	}
+
 	std::unique_ptr<parallel_cmd> cmd;
 
 	try
@@ -189,6 +208,5 @@ task<void> aw::operator|(task<void> && lhs, task<void> && rhs)
 	if (e)
 		return e;
 
-	command_ptr<void> cmdp(cmd.release());
-	return from_command(cmdp);
+	return from_command(cmd.release());
 }

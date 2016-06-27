@@ -22,6 +22,7 @@ struct command_ptr
 	command<T> & operator*() const noexcept;
 	command<T> * operator->() const noexcept;
 
+	command<T> * get() noexcept;
 	command<T> * release() noexcept;
 
 	result<T> dismiss() noexcept;
