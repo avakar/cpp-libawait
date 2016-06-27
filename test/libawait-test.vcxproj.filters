@@ -6,5 +6,6 @@
     <ClCompile Include="tcp_test.cpp" />
     <ClCompile Include="then_test.cpp" />
     <ClCompile Include="timer_test.cpp" />
+    <ClCompile Include="parallel_test.cpp" />
   </ItemGroup>
 </Project>

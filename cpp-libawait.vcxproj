@@ -50,6 +50,7 @@
     <ClInclude Include="await\timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="await\detail\parallel.cpp" />
     <ClCompile Include="await\detail\result.cpp" />
     <ClCompile Include="await\detail\stream.cpp" />
     <ClCompile Include="await\detail\task.cpp" />

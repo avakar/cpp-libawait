@@ -60,6 +60,8 @@ task<void> loop(Ctx c, StartF && start, UpdateF && update);
 
 task<void> postpone();
 
+task<void> operator|(task<void> && lhs, task<void> && rhs);
+
 } // namespace aw
 
 #include "detail/task_impl.h"

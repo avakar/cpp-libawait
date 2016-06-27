@@ -22,6 +22,7 @@ aw::task<void> aw::postpone()
 		result<void> cancel(detail::scheduler & sch, cancel_info ci)
 		{
 			assert(false);
+			(void)sch;
 			return ci;
 		}
 	};

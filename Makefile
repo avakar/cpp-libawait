@@ -7,9 +7,11 @@ SRCS= \
 	await/detail/linux_run.cpp \
 	await/detail/linux_tcp.cpp \
 	await/detail/linux_timer.cpp \
+	await/detail/parallel.cpp \
 	await/detail/result.cpp \
 	await/detail/stream.cpp \
 	await/detail/task.cpp \
+	test/parallel_test.cpp \
 	test/result_test.cpp \
 	test/then_test.cpp \
 	test/timer_test.cpp \

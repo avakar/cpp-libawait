@@ -100,5 +100,8 @@
     <ClCompile Include="await\detail\task.cpp">
       <Filter>detail</Filter>
     </ClCompile>
+    <ClCompile Include="await\detail\parallel.cpp">
+      <Filter>detail</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
