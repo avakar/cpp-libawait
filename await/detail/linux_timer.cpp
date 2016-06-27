@@ -55,10 +55,10 @@ aw::task<void> aw::wait_ms(int64_t ms)
 			return nullptr;
 		}
 
-		result<void> cancel(detail::scheduler & sch)
+		result<void> cancel(detail::scheduler & sch, cancel_info ci)
 		{
 			sch.remove_fd(m_fd, *this);
-			return std::make_exception_ptr(aw::task_aborted());
+			return ci;
 		}
 
 		void on_completion(detail::scheduler & sch, short) override

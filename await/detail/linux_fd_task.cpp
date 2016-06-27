@@ -28,11 +28,11 @@ aw::task<short> aw::detail::linux_fd_task(int fd, short events)
 			return nullptr;
 		}
 
-		aw::result<short> cancel(scheduler & sch)
+		aw::result<short> cancel(scheduler & sch, cancel_info ci)
 		{
 			// XXX
 			sch.remove_fd(m_fd, *this);
-			return std::make_exception_ptr(aw::task_aborted());
+			return ci;
 		}
 
 	private:

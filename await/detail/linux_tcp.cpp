@@ -52,10 +52,10 @@ struct poll_op_cmd
 		return nullptr;
 	}
 
-	aw::result<value_type> cancel(aw::detail::scheduler & sch)
+	aw::result<value_type> cancel(aw::detail::scheduler & sch, aw::cancel_info ci)
 	{
 		sch.remove_fd(m_fd, *this);
-		return std::make_exception_ptr(aw::task_aborted());
+		return ci;
 	}
 
 private:

@@ -80,10 +80,10 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 			});
 		}
 
-		result<U> cancel(detail::scheduler & sch)
+		result<U> cancel(detail::scheduler & sch, cancel_info ci)
 		{
-			result<T> r = m_cmd.cancel(sch);
-			return detail::invoke(std::move(m_f), std::move(r)).dismiss(detail::get_cancel_info(sch));
+			result<T> r = m_cmd.cancel(sch, ci);
+			return detail::invoke(std::move(m_f), std::move(r)).dismiss(ci);
 		}
 
 	private:

@@ -59,11 +59,11 @@ aw::task<void> aw::wait_ms(int64_t ms)
 			return nullptr;
 		}
 
-		result<void> cancel(detail::scheduler & sch)
+		result<void> cancel(detail::scheduler & sch, cancel_info ci)
 		{
 			assert(m_sink != nullptr);
 			sch.remove_handle(m_h, *this);
-			return std::make_exception_ptr(aw::task_aborted());
+			return ci;
 		}
 
 	private:

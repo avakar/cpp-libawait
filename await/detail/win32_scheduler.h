@@ -12,8 +12,6 @@ struct aw::detail::scheduler
 		virtual completion_result on_completion(scheduler & sch) = 0;
 	};
 
-	virtual cancel_info get_cancel_info() const noexcept = 0;
-
 	virtual void add_handle(HANDLE h, completion_sink & sink) = 0;
 	virtual void remove_handle(HANDLE h, completion_sink & sink) noexcept = 0;
 

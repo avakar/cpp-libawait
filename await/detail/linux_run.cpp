@@ -11,11 +11,6 @@ static_assert(POLLOUT == EPOLLOUT, "POLL and EPOLL constants diverge");
 static_assert(POLLERR == EPOLLERR, "POLL and EPOLL constants diverge");
 static_assert(POLLHUP == EPOLLHUP, "POLL and EPOLL constants diverge");
 
-aw::cancel_info aw::detail::get_cancel_info(aw::detail::scheduler & sch)
-{
-	return std::make_exception_ptr(aw::task_aborted());
-}
-
 aw::result<void> aw::detail::try_run_impl(task<void> && t)
 {
 	assert(!t.empty());

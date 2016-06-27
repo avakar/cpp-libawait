@@ -3,11 +3,6 @@
 #include "intrusive_list.h"
 #include <stdexcept>
 
-aw::cancel_info aw::detail::get_cancel_info(aw::detail::scheduler & sch)
-{
-	return sch.get_cancel_info();
-}
-
 aw::result<void> aw::detail::try_run_impl(task<void> && t)
 {
 	assert(!t.empty());
