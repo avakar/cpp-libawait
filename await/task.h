@@ -61,6 +61,7 @@ task<void> loop(Ctx c, StartF && start, UpdateF && update);
 task<void> postpone();
 
 task<void> operator|(task<void> && lhs, task<void> && rhs);
+task<void> & operator|=(task<void> & lhs, task<void> && rhs);
 
 } // namespace aw
 

@@ -14,45 +14,30 @@ struct parallel_cmd
 	{
 	}
 
-	std::exception_ptr add_cmd(task<void> & t)
+	std::exception_ptr add_cmd(command_ptr<void> & cmd)
 	{
-		assert(!t.empty());
+		assert(!cmd.empty());
 
-		if (command_ptr<void> cmd = fetch_command(t))
+		try
 		{
-			try
-			{
-				m_items.emplace_back();
-			}
-			catch (...)
-			{
-				cancel_info ci = std::current_exception();
-				result<void> r = cmd.dismiss();
-				if (r.has_exception())
-					ci = r.exception();
-				r = this->dismiss(ci);
-				if (r.has_exception())
-					ci = r.exception();
-				return ci;
-			}
-
-			item & it = m_items.back();
-			it.cmd = std::move(cmd);
-			it.m_it = std::prev(m_items.end());
-			it.m_parent = this;
-			return nullptr;
+			m_items.emplace_back();
 		}
-
-		result<void> r = t.dismiss();
-		if (r.has_exception())
+		catch (...)
 		{
-			cancel_info ci = r.exception();
+			cancel_info ci = std::current_exception();
+			result<void> r = cmd.dismiss();
+			if (r.has_exception())
+				ci = r.exception();
 			r = this->dismiss(ci);
 			if (r.has_exception())
 				ci = r.exception();
 			return ci;
 		}
 
+		item & it = m_items.back();
+		it.cmd = std::move(cmd);
+		it.m_it = std::prev(m_items.end());
+		it.m_parent = this;
 		return nullptr;
 	}
 
@@ -158,23 +143,45 @@ private:
 
 task<void> aw::operator|(task<void> && lhs, task<void> && rhs)
 {
-	if (command_ptr<void> lhs_cmd = fetch_command(lhs))
+	command_ptr<void> lhs_cmd = fetch_command(lhs);
+	if (!lhs_cmd)
 	{
-		if (auto p = dynamic_cast<parallel_cmd *>(lhs_cmd.get()))
+		result<void> r = lhs.dismiss();
+		if (r.has_exception())
 		{
-			lhs_cmd.release();
-
-			std::exception_ptr e = p->add_cmd(rhs);
-			if (e)
-			{
-				delete p;
-				return e;
-			}
-
-			return from_command(p);
+			cancel_info ci = r.exception();
+			r = rhs.dismiss(ci);
+			if (r.has_exception())
+				ci = r.exception();
+			return ci;
 		}
 
-		lhs = from_command(lhs_cmd);
+		return std::move(rhs);
+	}
+
+	command_ptr<void> rhs_cmd = fetch_command(rhs);
+	if (!rhs_cmd)
+	{
+		result<void> r = rhs.dismiss();
+		if (r.has_exception())
+		{
+			cancel_info ci = r.exception();
+			r = lhs.dismiss(ci);
+			if (r.has_exception())
+				ci = r.exception();
+			return ci;
+		}
+
+		return std::move(lhs);
+	}
+
+	if (auto p = dynamic_cast<parallel_cmd *>(lhs_cmd.get()))
+	{
+		std::exception_ptr e = p->add_cmd(rhs_cmd);
+		if (e)
+			return e;
+
+		return from_command(lhs_cmd);
 	}
 
 	std::unique_ptr<parallel_cmd> cmd;
@@ -195,7 +202,7 @@ task<void> aw::operator|(task<void> && lhs, task<void> && rhs)
 		return ci;
 	}
 
-	std::exception_ptr e = cmd->add_cmd(lhs);
+	std::exception_ptr e = cmd->add_cmd(lhs_cmd);
 	if (e)
 	{
 		result<void> r = rhs.dismiss(e);
@@ -204,9 +211,15 @@ task<void> aw::operator|(task<void> && lhs, task<void> && rhs)
 		return e;
 	}
 
-	e = cmd->add_cmd(rhs);
+	e = cmd->add_cmd(rhs_cmd);
 	if (e)
 		return e;
 
 	return from_command(cmd.release());
+}
+
+task<void> & aw::operator|=(task<void> & lhs, task<void> && rhs)
+{
+	lhs = std::move(lhs) | std::move(rhs);
+	return lhs;
 }
