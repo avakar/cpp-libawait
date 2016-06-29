@@ -42,6 +42,7 @@
     <ClInclude Include="await\detail\then_traits.h" />
     <ClInclude Include="await\detail\win32_error.h" />
     <ClInclude Include="await\detail\win32_scheduler.h" />
+    <ClInclude Include="await\fiber.h" />
     <ClInclude Include="await\result.h" />
     <ClInclude Include="await\run.h" />
     <ClInclude Include="await\stream.h" />
@@ -55,6 +56,7 @@
     <ClCompile Include="await\detail\stream.cpp" />
     <ClCompile Include="await\detail\task.cpp" />
     <ClCompile Include="await\detail\win32_error.cpp" />
+    <ClCompile Include="await\detail\win32_fiber.cpp" />
     <ClCompile Include="await\detail\win32_run.cpp" />
     <ClCompile Include="await\detail\win32_tcp.cpp" />
     <ClCompile Include="await\detail\win32_timer.cpp" />

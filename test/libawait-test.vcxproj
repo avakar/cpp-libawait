@@ -153,6 +153,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="fiber_test.cpp" />
     <ClCompile Include="parallel_test.cpp" />
     <ClCompile Include="result_test.cpp" />
     <ClCompile Include="task_test.cpp" />

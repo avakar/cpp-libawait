@@ -7,5 +7,6 @@
     <ClCompile Include="then_test.cpp" />
     <ClCompile Include="timer_test.cpp" />
     <ClCompile Include="parallel_test.cpp" />
+    <ClCompile Include="fiber_test.cpp" />
   </ItemGroup>
 </Project>

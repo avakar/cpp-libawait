@@ -72,6 +72,7 @@
     <ClInclude Include="await\detail\task_traits_impl.h">
       <Filter>detail</Filter>
     </ClInclude>
+    <ClInclude Include="await\fiber.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="detail">
@@ -101,6 +102,9 @@
       <Filter>detail</Filter>
     </ClCompile>
     <ClCompile Include="await\detail\parallel.cpp">
+      <Filter>detail</Filter>
+    </ClCompile>
+    <ClCompile Include="await\detail\win32_fiber.cpp">
       <Filter>detail</Filter>
     </ClCompile>
   </ItemGroup>
