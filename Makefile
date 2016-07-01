@@ -4,6 +4,7 @@ SRCS= \
 	test/mutest/mutest/detail/repr.cpp \
 	test/mutest/utest_main.cpp \
 	await/detail/linux_fd_task.cpp \
+	await/detail/linux_fiber.cpp \
 	await/detail/linux_run.cpp \
 	await/detail/linux_tcp.cpp \
 	await/detail/linux_timer.cpp \
@@ -11,6 +12,7 @@ SRCS= \
 	await/detail/result.cpp \
 	await/detail/stream.cpp \
 	await/detail/task.cpp \
+	test/fiber_test.cpp \
 	test/parallel_test.cpp \
 	test/result_test.cpp \
 	test/then_test.cpp \
