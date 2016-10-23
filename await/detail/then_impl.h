@@ -66,7 +66,7 @@ auto aw::task<T>::continue_with(F && f) -> typename detail::continue_with_traits
 		{
 		}
 
-		result<U> dismiss(cancel_info ci)
+		result<value_type> dismiss(cancel_info ci)
 		{
 			task<U> r = detail::invoke(std::move(m_f), m_cmd.dismiss(ci));
 			return r.dismiss(ci);

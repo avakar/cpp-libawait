@@ -54,7 +54,7 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 		{
 			for (epoll_item & item: m_items)
 			{
-				if (item.fd == fd & item.sink == &sink)
+				if (item.fd == fd && item.sink == &sink)
 				{
 					m_items.remove(item);
 					delete &item;

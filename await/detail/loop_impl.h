@@ -87,6 +87,8 @@ aw::task<void> aw::loop(Ctx c, StartF && start, UpdateF && update)
 				res.construct(std::move(*o.res));
 				o.res.destroy();
 				break;
+			case init:
+				break;
 			}
 		}
 

@@ -217,8 +217,6 @@ template <typename T, typename F>
 auto aw::detail::start_command(command_ptr<T> & cmd, scheduler & sch, task_completion<T> & sink, F && f)
 	-> typename task_traits<decltype(f(std::declval<result<T>>()))>::task_type
 {
-	typedef typename aw::detail::task_traits<decltype(f(std::declval<aw::result<T>>()))>::value_type U;
-
 	assert(cmd);
 	aw::task<T> u = cmd.start(sch, sink);
 	if (u.empty())

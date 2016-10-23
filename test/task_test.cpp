@@ -16,7 +16,7 @@ struct counting
 	~counting() { --*c; }
 	explicit counting(int & c): c(&c) { ++c; }
 	counting(counting const & o): c(o.c) { ++*c; }
-	counting & operator=(counting const & o) { c = o.c; ++*c; }
+	counting & operator=(counting const & o) { c = o.c; ++*c; return *this; }
 	int * c;
 };
 
