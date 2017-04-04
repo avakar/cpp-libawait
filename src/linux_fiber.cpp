@@ -1,4 +1,4 @@
-#include "../fiber.h"
+#include <avakar/await/fiber.h>
 #include "linux_error.h"
 #include <string.h>
 #include <ucontext.h>

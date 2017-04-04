@@ -1,4 +1,4 @@
-#include "../tcp.h"
+#include <avakar/await/tcp.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -8,7 +8,7 @@
 #include "linux_error.h"
 #include "linux_fd_task.h"
 #include "linux_scheduler.h"
-#include "../cancel.h"
+#include <avakar/await/cancel.h>
 
 namespace {
 

@@ -64,7 +64,7 @@ add_library(avakar_await STATIC
     src/linux_error.h
     src/linux_fd_task.cpp
     src/linux_fd_task.h
-    src/linux_fiber.h
+    src/linux_fiber.cpp
     src/linux_run.cpp
     src/linux_scheduler.h
     src/linux_tcp.cpp

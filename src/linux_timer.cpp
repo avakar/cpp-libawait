@@ -1,5 +1,5 @@
-#include "../timer.h"
-#include "../cancel.h"
+#include <avakar/await/timer.h>
+#include <avakar/await/cancel.h>
 #include "command.h"
 #include "linux_scheduler.h"
 #include <unistd.h>

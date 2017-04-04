@@ -1,7 +1,7 @@
 #include "linux_scheduler.h"
 #include "linux_fd_task.h"
 #include "linux_error.h"
-#include "../cancel.h"
+#include <avakar/await/cancel.h>
 #include <poll.h>
 
 aw::task<short> aw::detail::linux_fd_task(int fd, short events)
