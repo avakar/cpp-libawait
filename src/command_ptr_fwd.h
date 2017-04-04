@@ -1,7 +1,7 @@
 #ifndef AWAIT_DETAIL_COMMAND_PTR_H
 #define AWAIT_DETAIL_COMMAND_PTR_H
 
-#include "../result.h"
+#include <avakar/await/result.h>
 #include "command_intf.h"
 #include "task_fwd.h"
 

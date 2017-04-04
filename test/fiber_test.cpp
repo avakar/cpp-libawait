@@ -1,7 +1,7 @@
-#include <await/fiber.h>
+#include <avakar/await/fiber.h>
 #include <mutest/test.h>
-#include <await/tcp.h>
-#include <await/run.h>
+#include <avakar/await/tcp.h>
+#include <avakar/await/run.h>
 
 TEST("aw::fiber should work")
 {

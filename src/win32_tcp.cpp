@@ -1,8 +1,8 @@
-#include "../tcp.h"
-#include "../cancel.h"
+#include <avakar/await/tcp.h>
+#include <avakar/await/cancel.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <singleton/singleton.h>
+#include <avakar/singleton.h>
 #include "win32_error.h"
 #include "win32_scheduler.h"
 #include <memory>
@@ -25,7 +25,7 @@ struct winsock_guard
 	}
 };
 
-singleton<winsock_guard> g_winsock;
+avakar::singleton<winsock_guard> g_winsock;
 
 }
 
@@ -349,7 +349,7 @@ aw::task<std::shared_ptr<aw::stream>> aw::tcp_connect(char const * host, uint16_
 		connect_impl imp;
 		imp.m_winsock = wg;
 
-		imp.m_s = WSASocket(addrs->ai_family, SOCK_STREAM, IPPROTO_TCP, nullptr, 0, WSA_FLAG_OVERLAPPED | WSA_FLAG_NO_HANDLE_INHERIT);
+		imp.m_s = WSASocketW(addrs->ai_family, SOCK_STREAM, IPPROTO_TCP, nullptr, 0, WSA_FLAG_OVERLAPPED | WSA_FLAG_NO_HANDLE_INHERIT);
 		if (imp.m_s == INVALID_SOCKET)
 			return std::make_exception_ptr(detail::win32_error(WSAGetLastError()));
 
@@ -541,7 +541,7 @@ static aw::task<void> listen_one(uint16_t port, std::function<void(std::shared_p
 {
 	std::shared_ptr<winsock_guard> winsock = g_winsock.get();
 
-	SOCKET sock = WSASocket(af, SOCK_STREAM, IPPROTO_TCP, nullptr, 0, WSA_FLAG_OVERLAPPED | WSA_FLAG_NO_HANDLE_INHERIT);
+	SOCKET sock = WSASocketW(af, SOCK_STREAM, IPPROTO_TCP, nullptr, 0, WSA_FLAG_OVERLAPPED | WSA_FLAG_NO_HANDLE_INHERIT);
 	if (sock == INVALID_SOCKET)
 		return std::make_exception_ptr(aw::detail::win32_error(WSAGetLastError()));
 	socket_guard sg(sock);

@@ -1,8 +1,2 @@
-**.sdf
-**.opensdf
-**.vcxproj.user
-Debug/
-Release/
-.vs/
-**.VC.db
-**.VC.opendb
+/_*
+/deps.cmake

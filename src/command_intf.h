@@ -1,9 +1,9 @@
 #ifndef AWAIT_DETAIL_COMMAND_INTF_H
 #define AWAIT_DETAIL_COMMAND_INTF_H
 
-#include "../result.h"
+#include <avakar/await/result.h>
 #include "task_fwd.h"
-#include "../cancel.h"
+#include <avakar/await/cancel.h>
 
 namespace aw {
 namespace detail {

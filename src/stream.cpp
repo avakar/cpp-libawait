@@ -1,4 +1,4 @@
-#include "../stream.h"
+#include <avakar/await/stream.h>
 #include <memory>
 
 aw::task<void> aw::write_all(aw::stream & s, uint8_t const * buf, size_t size)

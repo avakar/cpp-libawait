@@ -1,6 +1,6 @@
-#include <await/tcp.h>
+#include <avakar/await/tcp.h>
 #include <mutest/test.h>
-#include <await/run.h>
+#include <avakar/await/run.h>
 
 #if 0
 aw::task<size_t> go(uint8_t * buf, size_t size)

@@ -1,6 +1,0 @@
-[submodule "test/mutest"]
-	path = test/mutest
-	url = https://github.com/avakar/cppmutest.git
-[submodule "singleton"]
-	path = singleton
-	url = https://github.com/avakar/cpp-libsingleton.git

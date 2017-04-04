@@ -1,7 +1,7 @@
 #ifndef AWAIT_DETAIL_COMMAND_H
 #define AWAIT_DETAIL_COMMAND_H
 
-#include "../task.h"
+#include <avakar/await/task.h>
 
 namespace aw {
 namespace detail {

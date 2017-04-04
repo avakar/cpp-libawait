@@ -2,9 +2,9 @@
 #define AWAIT_TASK_H
 
 #include "result.h"
-#include "detail/task_fwd.h"
-#include "detail/task_storage.h"
-#include "detail/then_traits.h"
+#include "../../../src/task_fwd.h"
+#include "../../../src/task_storage.h"
+#include "../../../src/then_traits.h"
 #include <exception>
 #include <stddef.h>
 
@@ -65,8 +65,8 @@ task<void> & operator|=(task<void> & lhs, task<void> && rhs);
 
 } // namespace aw
 
-#include "detail/task_impl.h"
-#include "detail/then_impl.h"
-#include "detail/loop_impl.h"
+#include "../../../src/task_impl.h"
+#include "../../../src/then_impl.h"
+#include "../../../src/loop_impl.h"
 
 #endif // AWAIT_TASK_H

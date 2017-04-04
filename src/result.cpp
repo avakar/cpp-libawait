@@ -1,4 +1,4 @@
-#include "../result.h"
+#include <avakar/await/result.h>
 
 aw::result<void>::result() noexcept
 	: m_exception(nullptr)

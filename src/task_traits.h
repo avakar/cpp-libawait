@@ -1,7 +1,7 @@
 #ifndef AWAIT_DETAIL_TASK_TRAITS_H
 #define AWAIT_DETAIL_TASK_TRAITS_H
 
-#include "../result.h"
+#include <avakar/await/result.h>
 #include "task_fwd.h"
 
 namespace aw {

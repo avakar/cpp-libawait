@@ -1,7 +1,7 @@
 #ifndef AWAIT_RESULT_H
 #define AWAIT_RESULT_H
 
-#include "detail/result_kind.h"
+#include "../../../src/result_kind.h"
 #include <type_traits>
 #include <exception>
 
@@ -74,6 +74,6 @@ result<void> value() noexcept;
 
 } // namespace aw
 
-#include "detail/result_impl.h"
+#include "../../../src/result_impl.h"
 
 #endif // AWAIT_RESULT_H

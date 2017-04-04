@@ -1,0 +1,21 @@
+{
+  "": {
+    "dependencies": {
+      "mutest": "_deps/cppmutest", 
+      "singleton": "_deps/cpp-libsingleton"
+    }
+  }, 
+  "_deps/cpp-libsingleton": {
+    "commit": "3b887ed036bd936ab8606bc18284a33ad108a994", 
+    "dependencies": {
+      "mutest": "_deps/cppmutest"
+    }, 
+    "type": "git", 
+    "url": "https://github.com/avakar/cpp-libsingleton.git"
+  }, 
+  "_deps/cppmutest": {
+    "commit": "9e66bc3f75862e1efcff9e44fc5a7b2b1f935696", 
+    "type": "git", 
+    "url": "https://github.com/avakar/cppmutest.git"
+  }
+}
