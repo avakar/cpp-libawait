@@ -10,6 +10,65 @@ aw::result<void> aw::detail::try_run_impl(task<void> && t)
 	struct fake_scheduler
 		: scheduler, task_completion<void>
 	{
+		struct token_impl final
+			: aw::detail::scheduler::token_base, intrusive_hook
+		{
+			token_impl()
+				: handle_(NULL), sink_(nullptr)
+			{
+			}
+
+			~token_impl()
+			{
+				if (handle_)
+					CloseHandle(handle_);
+			}
+
+			void release() override
+			{
+				delete this;
+			}
+
+			HANDLE handle_;
+			completion_sink * sink_;
+		};
+
+		intrusive_list<token_impl> empty_toks;
+		intrusive_list<token_impl> ready_toks;
+		intrusive_list<token_impl> waiting_toks;
+
+		token alloc_event(alloc_event_sink & sink, std::error_code & ec) noexcept override
+		{
+			std::unique_ptr<token_impl> tok(new(std::nothrow) token_impl);
+			if (!tok)
+			{
+				ec = std::make_error_code(std::errc::not_enough_memory);
+				return token();
+			}
+
+			tok->handle_ = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+			if (!tok->handle_)
+			{
+				ec = std::error_code(GetLastError(), std::system_category());
+				return token();
+			}
+
+			ec.clear();
+			return token(tok.release());
+		}
+
+		void add_handle(token const & tok, completion_sink & sink) noexcept override
+		{
+			auto tt = static_cast<token_impl *>(tok.get());
+
+			assert(tt->sink_ == nullptr);
+			tt->sink_ = &sink;
+		}
+
+		void remove_handle(token const & tok) noexcept override
+		{
+		}
+
 		struct sleeper_node_impl
 			: sleeper_node, intrusive_hook
 		{

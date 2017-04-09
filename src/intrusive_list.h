@@ -6,12 +6,12 @@ namespace detail {
 
 struct intrusive_hook
 {
-	intrusive_hook()
+	intrusive_hook() noexcept
 		: m_next(nullptr), m_prev(nullptr)
 	{
 	}
 
-	void detach()
+	void detach() noexcept
 	{
 		m_prev->m_next = m_next;
 		m_next->m_prev = m_prev;
@@ -31,28 +31,28 @@ struct intrusive_list
 
 	struct iterator
 	{
-		iterator()
+		iterator() noexcept
 			: m_node(nullptr)
 		{
 		}
 
-		explicit iterator(node * n)
+		explicit iterator(node * n) noexcept
 			: m_node(n)
 		{
 		}
 
-		T & operator*()
+		T & operator*() noexcept
 		{
 			return static_cast<T &>(*m_node);
 		}
 
-		iterator & operator++()
+		iterator & operator++() noexcept
 		{
 			m_node = m_node->m_next;
 			return *this;
 		}
 
-		friend bool operator!=(iterator const & lhs, iterator const & rhs)
+		friend bool operator!=(iterator const & lhs, iterator const & rhs) noexcept
 		{
 			return lhs.m_node != rhs.m_node;
 		}
@@ -60,33 +60,33 @@ struct intrusive_list
 		node * m_node;
 	};
 
-	intrusive_list()
+	intrusive_list() noexcept
 	{
 		m_head.m_next = &m_head;
 		m_head.m_prev = &m_head;
 	}
 
-	bool empty() const
+	bool empty() const noexcept
 	{
 		return m_head.m_next == &m_head;
 	}
 
-	iterator begin()
+	iterator begin() noexcept
 	{
 		return iterator(m_head.m_next);
 	}
 
-	iterator end()
+	iterator end() noexcept
 	{
 		return iterator(&m_head);
 	}
 
-	void push_back(T & v)
+	void push_back(T & v) noexcept
 	{
 		this->insert(v, this->end());
 	}
 
-	void insert(T & v, iterator where)
+	void insert(T & v, iterator where) noexcept
 	{
 		node * n = &v;
 		n->m_prev = where.m_node;
@@ -95,13 +95,13 @@ struct intrusive_list
 		n->m_next->m_prev = n;
 	}
 
-	iterator remove(T & v)
+	iterator remove(T & v) noexcept
 	{
 		node * n = &v;
 		return this->erase(iterator(n));
 	}
 
-	iterator erase(iterator it)
+	iterator erase(iterator it) noexcept
 	{
 		node * n = it.m_node;
 		node * r = it.m_node->m_next;
@@ -109,7 +109,7 @@ struct intrusive_list
 		return iterator(r);
 	}
 
-	void clear()
+	void clear() noexcept
 	{
 		node * p = m_head.m_next;
 		while (p != &m_head)
