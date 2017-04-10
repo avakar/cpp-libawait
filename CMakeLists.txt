@@ -73,6 +73,9 @@ add_library(avakar_await STATIC
 
 endif()
 
+source_group(include REGULAR_EXPRESSION include/.*)
+source_group(src REGULAR_EXPRESSION src/.*)
+
 target_include_directories(
     avakar_await
     PUBLIC include
