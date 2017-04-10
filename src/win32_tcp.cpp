@@ -232,7 +232,7 @@ private:
 	std::shared_ptr<winsock_guard> m_winsock;
 	SOCKET m_socket;
 };
-
+/*
 struct connect_impl
 	: private aw::detail::scheduler::completion_sink
 {
@@ -323,8 +323,25 @@ struct connect_impl
 	SOCKET m_s;
 	HANDLE m_h;
 	aw::detail::task_completion<value_type> * m_sink;
-};
+};*/
 
+aw::task<std::shared_ptr<aw::stream>> aw::tcp_connect(char const * host, uint16_t port) noexcept
+{
+	try
+	{
+		std::shared_ptr<winsock_guard> wg = g_winsock.get();
+
+		ADDRINFOEXA * ai;
+		OVERLAPPED ov;
+		HANDLE hCancel;
+		GetAddrInfoExA(host, nullptr, NS_DNS, nullptr, nullptr, &ai, nullptr, &ov, nullptr, &hCancel);
+	}
+	catch (...)
+	{
+		return std::current_exception();
+	}
+}
+/*
 aw::task<std::shared_ptr<aw::stream>> aw::tcp_connect(char const * host, uint16_t port) noexcept
 {
 	try
@@ -386,7 +403,7 @@ aw::task<std::shared_ptr<aw::stream>> aw::tcp_connect(char const * host, uint16_
 	{
 		return std::current_exception();
 	}
-}
+}*/
 
 template <int af>
 struct bind_all_address;

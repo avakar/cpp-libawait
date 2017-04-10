@@ -66,6 +66,25 @@ struct intrusive_list
 		m_head.m_prev = &m_head;
 	}
 
+	~intrusive_list()
+	{
+		this->clear();
+	}
+
+	void clear() noexcept
+	{
+		node * cur = m_head.m_next;
+		while (cur != &m_head)
+		{
+			node * next = cur->m_next;
+			delete static_cast<T *>(cur);
+			cur = next;
+		}
+
+		m_head.m_next = &m_head;
+		m_head.m_prev = &m_head;
+	}
+
 	bool empty() const noexcept
 	{
 		return m_head.m_next == &m_head;
@@ -81,14 +100,51 @@ struct intrusive_list
 		return iterator(&m_head);
 	}
 
+	T & front() noexcept
+	{
+		return *static_cast<T *>(m_head.m_next);
+	}
+
+	T const & front() const noexcept
+	{
+		return *static_cast<T *>(m_head.m_next);
+	}
+
+	T & back() noexcept
+	{
+		return *static_cast<T *>(m_head.m_prev);
+	}
+
+	T const & back() const noexcept
+	{
+		return *static_cast<T *>(m_head.m_prev);
+	}
+
 	void push_back(T & v) noexcept
 	{
 		this->insert(v, this->end());
 	}
 
+	void pop_front() noexcept
+	{
+		m_head.m_next->detach();
+	}
+
+	void pop_back() noexcept
+	{
+		m_head.m_prev->detach();
+	}
+
 	void insert(T & v, iterator where) noexcept
 	{
 		node * n = &v;
+
+		if (n->m_next)
+		{
+			n->m_next->m_prev = n->m_prev;
+			n->m_prev->m_next = n->m_next;
+		}
+
 		n->m_prev = where.m_node;
 		n->m_next = where.m_node->m_next;
 		n->m_prev->m_next = n;
@@ -107,21 +163,6 @@ struct intrusive_list
 		node * r = it.m_node->m_next;
 		n->detach();
 		return iterator(r);
-	}
-
-	void clear() noexcept
-	{
-		node * p = m_head.m_next;
-		while (p != &m_head)
-		{
-			node * q = p->m_next;
-			p->m_next = nullptr;
-			p->m_prev = nullptr;
-			p = q;
-		}
-
-		m_head.m_next = &m_head;
-		m_head.m_prev = &m_head;
 	}
 
 private:
