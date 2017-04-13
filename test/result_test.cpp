@@ -38,6 +38,7 @@ TEST("aw::result constructor shall not throw")
 TEST("aw::result should support simple values")
 {
 	aw::result<int> t = aw::value(42);
+	chk t.kind() == aw::result_kind::value;
 	chk t.has_value();
 	chk !t.has_exception();
 	t.rethrow();
@@ -73,6 +74,7 @@ TEST("aw::result should support exceptions")
 TEST("aw::result<void> should support simple values")
 {
 	aw::result<void> t = aw::value();
+	chk t.kind() == aw::result_kind::value;
 	chk t.has_value();
 	chk !t.has_exception();
 	chk t.exception() == nullptr;
@@ -83,6 +85,7 @@ TEST("aw::result<void> should support simple values")
 TEST("aw::result<void> should support exceptions")
 {
 	aw::result<void> t = std::make_exception_ptr(42);
+	chk t.kind() == aw::result_kind::exception;
 	chk !t.has_value();
 	chk t.has_exception();
 	chk t.exception() != nullptr;

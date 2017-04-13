@@ -16,6 +16,11 @@ aw::result<void>::result(in_place_t) noexcept
 {
 }
 
+aw::result_kind aw::result<void>::kind() const noexcept
+{
+	return m_exception? result_kind::exception: result_kind::value;
+}
+
 bool aw::result<void>::has_value() const noexcept
 {
 	return m_exception == nullptr;

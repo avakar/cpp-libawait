@@ -1,7 +1,6 @@
 #ifndef AWAIT_RESULT_H
 #define AWAIT_RESULT_H
 
-#include "../../../src/result_kind.h"
 #include <type_traits>
 #include <exception>
 
@@ -9,6 +8,12 @@ namespace aw {
 
 struct in_place_t {};
 constexpr in_place_t in_place{};
+
+enum class result_kind
+{
+	value,
+	exception,
+};
 
 template <typename T>
 struct result
@@ -31,6 +36,8 @@ public:
 
 	result & operator=(result o) noexcept;
 
+	result_kind kind() const noexcept;
+
 	bool has_value() const noexcept;
 	T & value() noexcept;
 	T const & value() const noexcept;
@@ -43,7 +50,7 @@ public:
 	void rethrow() const;
 
 private:
-	detail::result_kind m_kind;
+	result_kind m_kind;
 	typename std::aligned_union<0, T, std::exception_ptr>::type m_storage;
 };
 
@@ -53,6 +60,8 @@ struct result<void>
 	result() noexcept;
 	result(std::exception_ptr e) noexcept;
 	explicit result(in_place_t) noexcept;
+
+	result_kind kind() const noexcept;
 
 	bool has_value() const noexcept;
 	bool has_exception() const noexcept;

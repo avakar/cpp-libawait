@@ -27,7 +27,6 @@ set(common_srcs
     src/parallel.cpp
     src/result.cpp
     src/result_impl.h
-    src/result_kind.h
     src/run_impl.h
     src/stream.cpp
     src/task.cpp
