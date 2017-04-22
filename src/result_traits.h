@@ -11,6 +11,13 @@ struct result;
 
 namespace detail {
 
+enum class result_kind
+{
+	value,
+	error_code,
+	exception,
+};
+
 template <typename T>
 struct is_result
 	: std::false_type

@@ -38,6 +38,7 @@ target_link_libraries(avakar_await avakar_singleton)
 
 add_executable(avakar_await_test
     test/result_test.cpp
+    test/mockobject.h
     )
 target_link_libraries(avakar_await_test avakar_await mutest)
 

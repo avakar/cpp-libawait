@@ -15,12 +15,6 @@ struct in_place_type_t
 {
 };
 
-enum class kind {
-	value,
-	error_code,
-	exception,
-};
-
 template <typename T>
 struct result
 {
@@ -47,12 +41,22 @@ struct result
 	template <typename U>
 	result(result<U> const & o) noexcept;
 
+	template <typename U>
+	result(result<U> && o) noexcept;
+
 	~result();
 
+	T * operator->();
+	T const * operator->() const;
+	std::add_lvalue_reference_t<T> operator*() &;
+	std::add_lvalue_reference_t<T const> operator*() const &;
+	std::add_rvalue_reference_t<T> operator*() &&;
+	std::add_rvalue_reference_t<T const> operator*() const &&;
+
 	explicit operator bool() const noexcept;
-	bool holds_value() const noexcept;
-	bool holds_error_code() const noexcept;
-	bool holds_exception() const noexcept;
+	bool has_value() const noexcept;
+	bool has_error_code() const noexcept;
+	bool has_exception() const noexcept;
 
 	auto get()
 		-> std::add_rvalue_reference_t<T>;
@@ -70,7 +74,7 @@ private:
 
 	using value_type = std::conditional_t<std::is_void<T>::value, monostate, T>;
 
-	kind kind_;
+	detail::result_kind kind_;
 	std::aligned_union_t<0,
 		value_type,
 		std::error_code,

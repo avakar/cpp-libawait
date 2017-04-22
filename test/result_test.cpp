@@ -1,132 +1,207 @@
 #include <avakar/await/result.h>
 #include <mutest/test.h>
+#include "mockobject.h"
 
 namespace aw = avakar::libawait;
 
-namespace {
-
-struct mockobject
-{
-	mockobject(int * counter, int a = 1, int b = 2)
-		: counter_(counter), value(a + b)
-	{
-		++*counter_;
-	}
-
-	mockobject(int a = 1, int b = 2)
-		: counter_(nullptr), value(a + b)
-	{
-	}
-
-	mockobject(mockobject && o)
-		: counter_(o.counter_), value(o.value)
-	{
-		o.counter_ = nullptr;
-		o.value = -1;
-	}
-
-	mockobject(mockobject const & o)
-		: counter_(o.counter_), value(o.value)
-	{
-		if (counter_)
-			++*counter_;
-	}
-
-	~mockobject()
-	{
-		if (counter_)
-			--*counter_;
-	}
-
-	mockobject & operator=(mockobject && o)
-	{
-		counter_ = o.counter_;
-		value = o.value;
-		o.value = -1;
-
-		if (counter_)
-			++*counter_;
-		return *this;
-	}
-
-	mockobject & operator=(mockobject const & o)
-	{
-		counter_ = o.counter_;
-		value = o.value;
-
-		if (counter_)
-			++*counter_;
-		return *this;
-	}
-
-	int * counter_;
-	int value;
-};
-
-}
-
-TEST("aw::result<T>() shall hold T()")
+TEST("aw::result<T>() shall hold a value")
 {
 	aw::result<mockobject> r;
 	chk r;
-	chk r.get().value == 3;
+	chk r.has_value();
 }
 
-TEST("aw::result::holds_value is true while holding a value")
+TEST("a value in aw::result can be accessed via *")
 {
 	aw::result<mockobject> r;
-	chk r.holds_value();
+	chk (*r).value == 3;
 }
 
-TEST("aw::result::holds_value is false while holding an error_code")
+TEST("a value in aw::result can be accessed via ->")
+{
+	aw::result<mockobject> r;
+	chk r->value == 3;
+}
+
+TEST("a value in aw::result can modified via ->")
+{
+	aw::result<mockobject> r;
+	r->value = 4;
+	chk r->value == 4;
+}
+
+TEST("a value in aw::result can modified via *")
+{
+	aw::result<mockobject> r;
+	(*r).value = 4;
+	chk r->value == 4;
+}
+
+TEST("a value in const aw::result can accessed via *")
+{
+	aw::result<mockobject> const r;
+	chk (*r).value == 3;
+}
+
+TEST("a value in const aw::result can accessed via ->")
+{
+	aw::result<mockobject> const r;
+	chk r->value == 3;
+}
+
+TEST("operator * for aw::result<void> is valid")
+{
+	aw::result<void> r;
+	*r;
+}
+
+TEST("operator * for const aw::result<void> is valid")
+{
+	aw::result<void> const r;
+	*r;
+}
+
+TEST("operator * for aw::result rethrows")
+{
+	aw::result<mockobject> r = std::make_exception_ptr(1);
+	chk_exc(int, *r);
+}
+
+TEST("operator * for aw::result<void> rethrows")
+{
+	aw::result<void> r = std::make_exception_ptr(1);
+	chk_exc(int, *r);
+}
+
+TEST("operator -> for aw::result rethrows")
+{
+	aw::result<mockobject> r = std::make_exception_ptr(1);
+	chk_exc(int, r->value);
+}
+
+TEST("operator * for const aw::result rethrows")
+{
+	aw::result<mockobject> const r = std::make_exception_ptr(1);
+	chk_exc(int, *r);
+}
+
+TEST("operator * for const aw::result<void> rethrows")
+{
+	aw::result<void> const r = std::make_exception_ptr(1);
+	chk_exc(int, *r);
+}
+
+TEST("operator -> for const aw::result rethrows")
+{
+	aw::result<mockobject> const r = std::make_exception_ptr(1);
+	chk_exc(int, r->value);
+}
+
+TEST("operator * for aw::result returns lvalue ref")
+{
+	int counter = 0;
+
+	aw::result<mockobject> r1 = &counter;
+	aw::result<mockobject> r2 = *r1;
+
+	chk counter == 2;
+}
+
+TEST("operator * for moving aw::result returns rvalue ref")
+{
+	int counter = 0;
+
+	aw::result<mockobject> r1 = &counter;
+	aw::result<mockobject> r2 = *std::move(r1);
+
+	chk counter == 1;
+}
+
+TEST("operator * for rval const aw::result returns const rvalue ref")
+{
+	aw::result<mockobject> const r1;
+	chk std::is_same<mockobject const &&, decltype(*std::move(r1))>::value;
+}
+
+TEST("operator * for rval aw::result rethrows")
+{
+	aw::result<mockobject> r = std::make_exception_ptr(1);
+	chk_exc(int, *std::move(r));
+}
+
+TEST("operator * for rval aw::result<void> rethrows")
+{
+	aw::result<void> r = std::make_exception_ptr(1);
+	chk_exc(int, *std::move(r));
+}
+
+TEST("operator * for const rval aw::result rethrows")
+{
+	aw::result<mockobject> const r = std::make_exception_ptr(1);
+	chk_exc(int, *std::move(r));
+}
+
+TEST("operator * for const rval aw::result<void> rethrows")
+{
+	aw::result<void> const r = std::make_exception_ptr(1);
+	chk_exc(int, *std::move(r));
+}
+
+TEST("aw::result::has_value is true while holding a value")
+{
+	aw::result<mockobject> r;
+	chk r.has_value();
+}
+
+TEST("aw::result::has_value is false while holding an error_code")
 {
 	aw::result<mockobject> r(aw::in_place_type_t<std::error_code>(),
 		std::make_error_code(std::errc::invalid_argument));
-	chk !r.holds_value();
+	chk !r.has_value();
 }
 
-TEST("aw::result::holds_value is false while holding an exception")
+TEST("aw::result::has_value is false while holding an exception")
 {
 	aw::result<mockobject> r(aw::in_place_type_t<std::exception_ptr>(), std::make_exception_ptr(1));
-	chk !r.holds_value();
+	chk !r.has_value();
 }
 
-TEST("aw::result::holds_error_code is false while holding a value")
+TEST("aw::result::has_error_code is false while holding a value")
 {
 	aw::result<mockobject> r;
-	chk !r.holds_error_code();
+	chk !r.has_error_code();
 }
 
-TEST("aw::result::holds_error_code is true while holding an error_code")
+TEST("aw::result::has_error_code is true while holding an error_code")
 {
 	aw::result<mockobject> r(aw::in_place_type_t<std::error_code>(),
 		std::make_error_code(std::errc::invalid_argument));
-	chk r.holds_error_code();
+	chk r.has_error_code();
 }
 
-TEST("aw::result::holds_error_code is false while holding an exception")
+TEST("aw::result::has_error_code is false while holding an exception")
 {
 	aw::result<mockobject> r(aw::in_place_type_t<std::exception_ptr>(), std::make_exception_ptr(1));
-	chk !r.holds_error_code();
+	chk !r.has_error_code();
 }
 
-TEST("aw::result::holds_exception is false while holding a value")
+TEST("aw::result::has_exception is false while holding a value")
 {
 	aw::result<mockobject> r;
-	chk !r.holds_exception();
+	chk !r.has_exception();
 }
 
-TEST("aw::result::holds_exception is false while holding an error_code")
+TEST("aw::result::has_exception is false while holding an error_code")
 {
 	aw::result<mockobject> r(aw::in_place_type_t<std::error_code>(),
 		std::make_error_code(std::errc::invalid_argument));
-	chk !r.holds_exception();
+	chk !r.has_exception();
 }
 
-TEST("aw::result::holds_exception is true while holding an exception")
+TEST("aw::result::has_exception is true while holding an exception")
 {
 	aw::result<mockobject> r(aw::in_place_type_t<std::exception_ptr>(), std::make_exception_ptr(1));
-	chk r.holds_exception();
+	chk r.has_exception();
 }
 
 TEST("aw::result<void>() shall hold a value")
@@ -208,14 +283,14 @@ TEST("aw::result can initialize implicitly from value")
 TEST("aw::result can initialize implicitly from error_code")
 {
 	aw::result<mockobject> r = std::make_error_code(std::errc::invalid_argument);
-	chk r.holds_error_code();
+	chk r.has_error_code();
 	chk_exc(std::system_error, r.get());
 }
 
 TEST("aw::result can initialize implicitly from exception_ptr")
 {
 	aw::result<mockobject> r = std::make_exception_ptr(1);
-	chk r.holds_exception();
+	chk r.has_exception();
 	chk_exc(int, r.get());
 }
 
@@ -241,8 +316,18 @@ TEST("aw::result moves correctly")
 
 TEST("aw::result converts correctly")
 {
-	aw::result<int> r1 = 1;
-	aw::result<long> r2 = r1;
+	aw::result<mockobject> r1 = 1;
+	aw::result<basic_mockobject<long>> r2 = r1;
 
-	chk r2.get() == 1;
+	chk r1.get().value == 3;
+	chk r2.get().value == 3;
+}
+
+TEST("aw::result converts by move correctly")
+{
+	aw::result<mockobject> r1 = 1;
+	aw::result<basic_mockobject<long>> r2 = std::move(r1);
+
+	chk r2.get().value == 3;
+	chk r1.get().value == -1;
 }

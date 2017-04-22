@@ -26,7 +26,7 @@ using choose_overload_t = decltype(overload_sandbox<Types...>::f(std::declval<T>
 
 template <typename T>
 result<T>::result() noexcept
-	: kind_(kind::value)
+	: kind_(detail::result_kind::value)
 {
 	new(&storage_) value_type();
 }
@@ -43,7 +43,7 @@ result<T>::result(U && u) noexcept
 template <typename T>
 template <typename... Args>
 result<T>::result(in_place_type_t<T>, Args &&... args) noexcept
-	: kind_(kind::value)
+	: kind_(detail::result_kind::value)
 {
 	new(&storage_) value_type(std::forward<Args>(args)...);
 }
@@ -51,7 +51,7 @@ result<T>::result(in_place_type_t<T>, Args &&... args) noexcept
 template <typename T>
 template <typename... Args>
 result<T>::result(in_place_type_t<std::error_code>, Args &&... args) noexcept
-	: kind_(kind::error_code)
+	: kind_(detail::result_kind::error_code)
 {
 	new(&storage_) std::error_code(std::forward<Args>(args)...);
 }
@@ -59,7 +59,7 @@ result<T>::result(in_place_type_t<std::error_code>, Args &&... args) noexcept
 template <typename T>
 template <typename... Args>
 result<T>::result(in_place_type_t<std::exception_ptr>, Args &&... args) noexcept
-	: kind_(kind::exception)
+	: kind_(detail::result_kind::exception)
 {
 	new(&storage_) std::exception_ptr(std::forward<Args>(args)...);
 }
@@ -96,6 +96,17 @@ result<T>::result(result<U> const & o) noexcept
 }
 
 template <typename T>
+template <typename U>
+result<T>::result(result<U> && o) noexcept
+	: kind_(o.kind_)
+{
+	o.visit([&](auto && v) {
+		using T = std::decay_t<decltype(v)>;
+		new(&storage_) T(std::move(v));
+	});
+}
+
+template <typename T>
 result<T>::~result()
 {
 	this->visit([](auto const & v) {
@@ -105,27 +116,93 @@ result<T>::~result()
 }
 
 template <typename T>
+T * result<T>::operator->()
+{
+	this->rethrow();
+	return reinterpret_cast<value_type *>(&storage_);
+}
+
+template <typename T>
+T const * result<T>::operator->() const
+{
+	this->rethrow();
+	return reinterpret_cast<value_type const *>(&storage_);
+}
+
+template <typename T>
+std::add_lvalue_reference_t<T> result<T>::operator*() &
+{
+	this->rethrow();
+	return reinterpret_cast<value_type &>(storage_);
+}
+
+template <>
+inline std::add_lvalue_reference_t<void> result<void>::operator*() &
+{
+	this->rethrow();
+}
+
+template <typename T>
+std::add_rvalue_reference_t<T> result<T>::operator*() &&
+{
+	this->rethrow();
+	return reinterpret_cast<value_type &&>(storage_);
+}
+
+template <>
+inline std::add_rvalue_reference_t<void> result<void>::operator*() &&
+{
+	this->rethrow();
+}
+
+template <typename T>
+std::add_lvalue_reference_t<T const> result<T>::operator*() const &
+{
+	this->rethrow();
+	return reinterpret_cast<value_type const &>(storage_);
+}
+
+template <>
+inline std::add_lvalue_reference_t<void const> result<void>::operator*() const &
+{
+	this->rethrow();
+}
+
+template <typename T>
+std::add_rvalue_reference_t<T const> result<T>::operator*() const &&
+{
+	this->rethrow();
+	return reinterpret_cast<value_type const &&>(storage_);
+}
+
+template <>
+inline std::add_rvalue_reference_t<void const> result<void>::operator*() const &&
+{
+	this->rethrow();
+}
+
+template <typename T>
 result<T>::operator bool() const noexcept
 {
-	return this->holds_value();
+	return this->has_value();
 }
 
 template <typename T>
-bool result<T>::holds_value() const noexcept
+bool result<T>::has_value() const noexcept
 {
-	return kind_ == kind::value;
+	return kind_ == detail::result_kind::value;
 }
 
 template <typename T>
-bool result<T>::holds_error_code() const noexcept
+bool result<T>::has_error_code() const noexcept
 {
-	return kind_ == kind::error_code;
+	return kind_ == detail::result_kind::error_code;
 }
 
 template <typename T>
-bool result<T>::holds_exception() const noexcept
+bool result<T>::has_exception() const noexcept
 {
-	return kind_ == kind::exception;
+	return kind_ == detail::result_kind::exception;
 }
 
 template <typename T>
@@ -160,9 +237,9 @@ void result<T>::rethrow() const
 {
 	switch (kind_)
 	{
-	case kind::error_code:
+	case detail::result_kind::error_code:
 		throw std::system_error(this->error_code());
-	case kind::exception:
+	case detail::result_kind::exception:
 		std::rethrow_exception(this->exception());
 	}
 }
@@ -173,13 +250,13 @@ void result<T>::visit(Visitor && vis)
 {
 	switch (kind_)
 	{
-	case kind::value:
+	case detail::result_kind::value:
 		std::forward<Visitor>(vis)(reinterpret_cast<value_type &&>(storage_));
 		break;
-	case kind::error_code:
+	case detail::result_kind::error_code:
 		std::forward<Visitor>(vis)(reinterpret_cast<std::error_code &&>(storage_));
 		break;
-	case kind::exception:
+	case detail::result_kind::exception:
 		std::forward<Visitor>(vis)(reinterpret_cast<std::exception_ptr &&>(storage_));
 		break;
 	}
@@ -191,13 +268,13 @@ void result<T>::visit(Visitor && vis) const
 {
 	switch (kind_)
 	{
-	case kind::value:
+	case detail::result_kind::value:
 		std::forward<Visitor>(vis)(reinterpret_cast<value_type const &>(storage_));
 		break;
-	case kind::error_code:
+	case detail::result_kind::error_code:
 		std::forward<Visitor>(vis)(reinterpret_cast<std::error_code const &>(storage_));
 		break;
-	case kind::exception:
+	case detail::result_kind::exception:
 		std::forward<Visitor>(vis)(reinterpret_cast<std::exception_ptr const &>(storage_));
 		break;
 	}
