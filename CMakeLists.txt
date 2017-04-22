@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(common_srcs
     include/avakar/await/result.h
+    src/result.cpp
     )
 
 if (WIN32)
