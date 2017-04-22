@@ -71,6 +71,7 @@ private:
 		std::exception_ptr
 		> storage_;
 
+	template <typename U>
 	friend struct result;
 };
 
