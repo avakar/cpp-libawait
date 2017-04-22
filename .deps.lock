@@ -14,7 +14,7 @@
     "url": "https://github.com/avakar/cpp-libsingleton.git"
   }, 
   "_deps/cppmutest": {
-    "commit": "9e66bc3f75862e1efcff9e44fc5a7b2b1f935696", 
+    "commit": "6e7f21ff4eaa903559d0398848cf2e8267142770", 
     "type": "git", 
     "url": "https://github.com/avakar/cppmutest.git"
   }
