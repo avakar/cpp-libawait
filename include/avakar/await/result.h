@@ -62,6 +62,12 @@ private:
 	std::exception_ptr exception() const noexcept;
 	void rethrow() const;
 
+	template <typename Visitor>
+	void visit(Visitor && vis);
+
+	template <typename Visitor>
+	void visit(Visitor && vis) const;
+
 	using value_type = std::conditional_t<std::is_void<T>::value, monostate, T>;
 
 	kind kind_;

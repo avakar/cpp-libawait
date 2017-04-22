@@ -68,36 +68,20 @@ template <typename T>
 result<T>::result(result const & o) noexcept
 	: kind_(o.kind_)
 {
-	switch (kind_)
-	{
-	case kind::value:
-		new(&storage_) value_type(reinterpret_cast<value_type const &>(o.storage_));
-		break;
-	case kind::error_code:
-		new(&storage_) std::error_code(reinterpret_cast<std::error_code const &>(o.storage_));
-		break;
-	case kind::exception:
-		new(&storage_) std::exception_ptr(reinterpret_cast<std::exception_ptr const &>(o.storage_));
-		break;
-	}
+	o.visit([&](auto const & v) {
+		using T = std::decay_t<decltype(v)>;
+		new(&storage_) T(v);
+	});
 }
 
 template <typename T>
 result<T>::result(result && o) noexcept
 	: kind_(o.kind_)
 {
-	switch (kind_)
-	{
-	case kind::value:
-		new(&storage_) value_type(reinterpret_cast<value_type &&>(o.storage_));
-		break;
-	case kind::error_code:
-		new(&storage_) std::error_code(reinterpret_cast<std::error_code &&>(o.storage_));
-		break;
-	case kind::exception:
-		new(&storage_) std::exception_ptr(reinterpret_cast<std::exception_ptr &&>(o.storage_));
-		break;
-	}
+	o.visit([&](auto && v) {
+		using T = std::decay_t<decltype(v)>;
+		new(&storage_) T(std::move(v));
+	});
 }
 
 template <typename T>
@@ -105,35 +89,19 @@ template <typename U>
 result<T>::result(result<U> const & o) noexcept
 	: kind_(o.kind_)
 {
-	switch (kind_)
-	{
-	case kind::value:
-		new(&storage_) value_type(reinterpret_cast<typename result<U>::value_type const &>(o.storage_));
-		break;
-	case kind::error_code:
-		new(&storage_) std::error_code(reinterpret_cast<std::error_code const &>(o.storage_));
-		break;
-	case kind::exception:
-		new(&storage_) std::exception_ptr(reinterpret_cast<std::exception_ptr const &>(o.storage_));
-		break;
-	}
+	o.visit([&](auto const & v) {
+		using T = std::decay_t<decltype(v)>;
+		new(&storage_) T(v);
+	});
 }
 
 template <typename T>
 result<T>::~result()
 {
-	switch (kind_)
-	{
-	case kind::value:
-		reinterpret_cast<value_type *>(&storage_)->~value_type();
-		break;
-	case kind::error_code:
-		reinterpret_cast<std::error_code *>(&storage_)->~error_code();
-		break;
-	case kind::exception:
-		reinterpret_cast<std::exception_ptr *>(&storage_)->~exception_ptr();
-		break;
-	}
+	this->visit([](auto const & v) {
+		using T = std::decay_t<decltype(v)>;
+		v.~T();
+	});
 }
 
 template <typename T>
@@ -196,6 +164,42 @@ void result<T>::rethrow() const
 		throw std::system_error(this->error_code());
 	case kind::exception:
 		std::rethrow_exception(this->exception());
+	}
+}
+
+template <typename T>
+template <typename Visitor>
+void result<T>::visit(Visitor && vis)
+{
+	switch (kind_)
+	{
+	case kind::value:
+		std::forward<Visitor>(vis)(reinterpret_cast<value_type &&>(storage_));
+		break;
+	case kind::error_code:
+		std::forward<Visitor>(vis)(reinterpret_cast<std::error_code &&>(storage_));
+		break;
+	case kind::exception:
+		std::forward<Visitor>(vis)(reinterpret_cast<std::exception_ptr &&>(storage_));
+		break;
+	}
+}
+
+template <typename T>
+template <typename Visitor>
+void result<T>::visit(Visitor && vis) const
+{
+	switch (kind_)
+	{
+	case kind::value:
+		std::forward<Visitor>(vis)(reinterpret_cast<value_type const &>(storage_));
+		break;
+	case kind::error_code:
+		std::forward<Visitor>(vis)(reinterpret_cast<std::error_code const &>(storage_));
+		break;
+	case kind::exception:
+		std::forward<Visitor>(vis)(reinterpret_cast<std::exception_ptr const &>(storage_));
+		break;
 	}
 }
 
