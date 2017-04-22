@@ -27,9 +27,9 @@ struct result
 	result() noexcept;
 
 	template <typename U,
-		typename = typename std::enable_if<
+		typename = std::enable_if_t<
 		!detail::is_result<typename std::decay<U>::type>::value
-		>::type>
+		>>
 	result(U && u) noexcept;
 
 	template <typename... Args>
@@ -55,21 +55,21 @@ struct result
 	bool holds_exception() const noexcept;
 
 	auto get()
-		-> typename std::add_rvalue_reference<T>::type;
+		-> std::add_rvalue_reference_t<T>;
 
 private:
 	std::error_code error_code() const noexcept;
 	std::exception_ptr exception() const noexcept;
 	void rethrow() const;
 
-	using value_type = typename std::conditional<std::is_void<T>::value, monostate, T>::type;
+	using value_type = std::conditional_t<std::is_void<T>::value, monostate, T>;
 
 	kind kind_;
-	typename std::aligned_union<0,
+	std::aligned_union_t<0,
 		value_type,
 		std::error_code,
 		std::exception_ptr
-		>::type storage_;
+		> storage_;
 
 	friend struct result;
 };
