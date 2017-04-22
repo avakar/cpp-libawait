@@ -1,88 +1,82 @@
-#ifndef AWAIT_RESULT_H
-#define AWAIT_RESULT_H
+#ifndef AVAKAR_AWAIT_RESULT_H
+#define AVAKAR_AWAIT_RESULT_H
 
+#include "monostate.h"
+#include "../../../src/result_traits.h"
 #include <type_traits>
+#include <system_error>
 #include <exception>
 
-namespace aw {
+namespace avakar {
+namespace libawait {
 
-struct in_place_t {};
-constexpr in_place_t in_place{};
-
-enum class result_kind
+template <typename T>
+struct in_place_type_t
 {
+};
+
+enum class kind {
 	value,
+	error_code,
 	exception,
 };
 
 template <typename T>
 struct result
 {
-public:
 	result() noexcept;
+
+	template <typename U,
+		typename = typename std::enable_if<
+		!detail::is_result<typename std::decay<U>::type>::value
+		>::type>
+	result(U && u) noexcept;
+
+	template <typename... Args>
+	result(in_place_type_t<T>, Args &&... args) noexcept;
+
+	template <typename... Args>
+	result(in_place_type_t<std::error_code>, Args &&... args) noexcept;
+
+	template <typename... Args>
+	result(in_place_type_t<std::exception_ptr>, Args &&... args) noexcept;
+
 	result(result const & o) noexcept;
 	result(result && o) noexcept;
-	result(std::exception_ptr e) noexcept;
-	~result();
-
-	template <typename... U>
-	explicit result(in_place_t, U &&... u) noexcept;
 
 	template <typename U>
 	result(result<U> const & o) noexcept;
 
-	template <typename U>
-	result(result<U> && o) noexcept;
+	~result();
 
-	result & operator=(result o) noexcept;
+	explicit operator bool() const noexcept;
+	bool holds_value() const noexcept;
+	bool holds_error_code() const noexcept;
+	bool holds_exception() const noexcept;
 
-	result_kind kind() const noexcept;
-
-	bool has_value() const noexcept;
-	T & value() noexcept;
-	T const & value() const noexcept;
-
-	bool has_exception() const noexcept;
-	std::exception_ptr & exception() noexcept;
-	std::exception_ptr const & exception() const noexcept;
-
-	T && get();
-	void rethrow() const;
+	auto get()
+		-> typename std::add_rvalue_reference<T>::type;
 
 private:
-	result_kind m_kind;
-	typename std::aligned_union<0, T, std::exception_ptr>::type m_storage;
-};
-
-template <>
-struct result<void>
-{
-	result() noexcept;
-	result(std::exception_ptr e) noexcept;
-	explicit result(in_place_t) noexcept;
-
-	result_kind kind() const noexcept;
-
-	bool has_value() const noexcept;
-	bool has_exception() const noexcept;
-
-	std::exception_ptr & exception() noexcept;
-	std::exception_ptr const & exception() const noexcept;
-
-	void get();
+	std::error_code error_code() const noexcept;
+	std::exception_ptr exception() const noexcept;
 	void rethrow() const;
 
-private:
-	std::exception_ptr m_exception;
+	using value_type = typename std::conditional<std::is_void<T>::value, monostate, T>::type;
+
+	kind kind_;
+	typename std::aligned_union<0,
+		value_type,
+		std::error_code,
+		std::exception_ptr
+		>::type storage_;
+
+	friend struct result;
 };
 
-template <typename T>
-result<typename std::remove_const<typename std::remove_reference<T>::type>::type> value(T && v) noexcept;
-
-result<void> value() noexcept;
-
-} // namespace aw
+} // namespace libawait
+} // namespace avakar
 
 #include "../../../src/result_impl.h"
 
-#endif // AWAIT_RESULT_H
+#endif // AVAKAR_AWAIT_RESULT_H

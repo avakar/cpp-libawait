@@ -7,7 +7,10 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(common_srcs
+    include/avakar/await/monostate.h
     include/avakar/await/result.h
+    src/result_impl.h
+    src/result_traits.h
     src/result.cpp
     )
 
@@ -27,9 +30,6 @@ add_library(avakar_await STATIC
 
 endif()
 
-source_group(include REGULAR_EXPRESSION include/.*)
-source_group(src REGULAR_EXPRESSION src/.*)
-
 target_include_directories(
     avakar_await
     PUBLIC include
@@ -40,3 +40,7 @@ add_executable(avakar_await_test
     test/result_test.cpp
     )
 target_link_libraries(avakar_await_test avakar_await mutest)
+
+source_group(include REGULAR_EXPRESSION include/.*)
+source_group(src REGULAR_EXPRESSION src/.*)
+source_group(test REGULAR_EXPRESSION test/.*)

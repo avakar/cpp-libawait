@@ -1,224 +1,203 @@
-#include <assert.h>
-#include <new>
 #include <utility>
 
-namespace aw {
+namespace avakar {
+namespace libawait {
+
 namespace detail {
 
-template <typename T, typename... U>
-void construct_result(result_kind & kind, void * storage, U &&... u) noexcept;
-
-}
-}
-
-template <typename T, typename... U>
-void aw::detail::construct_result(result_kind & kind, void * storage, U &&... u) noexcept
+template <typename T0, typename... Tn>
+struct overload_sandbox
+	: overload_sandbox<Tn...>
 {
-	try
+	using overload_sandbox<Tn...>::f;
+	static T0 f(T0);
+};
+
+template <typename T0>
+struct overload_sandbox<T0>
+{
+	static T0 f(T0);
+};
+
+template <typename T, typename... Types>
+using choose_overload_t = decltype(overload_sandbox<Types...>::f(std::declval<T>()));
+
+}
+
+template <typename T>
+result<T>::result() noexcept
+	: kind_(kind::value)
+{
+	new(&storage_) value_type();
+}
+
+template <typename T>
+template <typename U, typename>
+result<T>::result(U && u) noexcept
+	: result(
+		in_place_type_t<detail::choose_overload_t<U, T, std::error_code, std::exception_ptr>>(),
+		std::forward<U>(u))
+{
+}
+
+template <typename T>
+template <typename... Args>
+result<T>::result(in_place_type_t<T>, Args &&... args) noexcept
+	: kind_(kind::value)
+{
+	new(&storage_) value_type(std::forward<Args>(args)...);
+}
+
+template <typename T>
+template <typename... Args>
+result<T>::result(in_place_type_t<std::error_code>, Args &&... args) noexcept
+	: kind_(kind::error_code)
+{
+	new(&storage_) std::error_code(std::forward<Args>(args)...);
+}
+
+template <typename T>
+template <typename... Args>
+result<T>::result(in_place_type_t<std::exception_ptr>, Args &&... args) noexcept
+	: kind_(kind::exception)
+{
+	new(&storage_) std::exception_ptr(std::forward<Args>(args)...);
+}
+
+template <typename T>
+result<T>::result(result const & o) noexcept
+	: kind_(o.kind_)
+{
+	switch (kind_)
 	{
-		new(storage) T(std::forward<U>(u)...);
-		kind = result_kind::value;
+	case kind::value:
+		new(&storage_) value_type(reinterpret_cast<value_type const &>(o.storage_));
+		break;
+	case kind::error_code:
+		new(&storage_) std::error_code(reinterpret_cast<std::error_code const &>(o.storage_));
+		break;
+	case kind::exception:
+		new(&storage_) std::exception_ptr(reinterpret_cast<std::exception_ptr const &>(o.storage_));
+		break;
 	}
-	catch (...)
+}
+
+template <typename T>
+result<T>::result(result && o) noexcept
+	: kind_(o.kind_)
+{
+	switch (kind_)
 	{
-		new(storage) std::exception_ptr(std::current_exception());
-		kind = result_kind::exception;
-	}
-}
-
-template <typename T>
-aw::result<T>::result() noexcept
-	: m_kind(result_kind::exception)
-{
-	new(&m_storage) std::exception_ptr(nullptr);
-}
-
-template <typename T>
-aw::result<T>::result(result const & o) noexcept
-{
-	switch (o.m_kind)
-	{
-	case result_kind::value:
-		detail::construct_result<T>(m_kind, &m_storage, reinterpret_cast<T const &>(o.m_storage));
+	case kind::value:
+		new(&storage_) value_type(reinterpret_cast<value_type &&>(o.storage_));
 		break;
-	case result_kind::exception:
-		new(&m_storage) std::exception_ptr(reinterpret_cast<std::exception_ptr const &>(o.m_storage));
-		m_kind = result_kind::exception;
+	case kind::error_code:
+		new(&storage_) std::error_code(reinterpret_cast<std::error_code &&>(o.storage_));
 		break;
-	}
-}
-
-template <typename T>
-aw::result<T>::result(result && o) noexcept
-	: m_kind(o.m_kind)
-{
-	switch (o.m_kind)
-	{
-	case result_kind::value:
-		detail::construct_result<T>(m_kind, &m_storage, reinterpret_cast<T &&>(o.m_storage));
-		break;
-	case result_kind::exception:
-		new(&m_storage) std::exception_ptr(reinterpret_cast<std::exception_ptr &&>(o.m_storage));
-		break;
-	}
-}
-
-template <typename T>
-template <typename... U>
-aw::result<T>::result(in_place_t, U &&... u) noexcept
-{
-	detail::construct_result<T>(m_kind, &m_storage, std::forward<U>(u)...);
-}
-
-
-template <typename T>
-aw::result<T>::result(std::exception_ptr e) noexcept
-	: m_kind(result_kind::exception)
-{
-	assert(e != nullptr);
-	new(&m_storage) std::exception_ptr(std::move(e));
-}
-
-template <typename T>
-aw::result<T>::~result()
-{
-	switch (m_kind)
-	{
-	case result_kind::value:
-		reinterpret_cast<T &>(m_storage).~T();
-		break;
-	case result_kind::exception:
-		reinterpret_cast<std::exception_ptr &>(m_storage).~exception_ptr();
+	case kind::exception:
+		new(&storage_) std::exception_ptr(reinterpret_cast<std::exception_ptr &&>(o.storage_));
 		break;
 	}
 }
 
 template <typename T>
 template <typename U>
-aw::result<T>::result(result<U> const & o) noexcept
+result<T>::result(result<U> const & o) noexcept
+	: kind_(o.kind_)
 {
-	if (o.has_value())
+	switch (kind_)
 	{
-		m_kind = result_kind::value;
-		detail::construct_result<T>(m_kind, &m_storage, o.value());
-	}
-	else
-	{
-		m_kind = result_kind::exception;
-		new(&m_storage) std::exception_ptr(o.exception());
-	}
-}
-
-template <typename T>
-template <typename U>
-aw::result<T>::result(result<U> && o) noexcept
-{
-	if (o.has_value())
-	{
-		m_kind = result_kind::value;
-		detail::construct_result<T>(m_kind, &m_storage, std::move(o.value()));
-	}
-	else
-	{
-		m_kind = result_kind::exception;
-		new(&m_storage) std::exception_ptr(std::move(o.exception()));
-	}
-}
-
-template <typename T>
-aw::result<T> & aw::result<T>::operator=(result o) noexcept
-{
-	switch (m_kind)
-	{
-	case result_kind::value:
-		reinterpret_cast<T &>(m_storage).~T();
+	case kind::value:
+		new(&storage_) value_type(reinterpret_cast<typename result<U>::value_type const &>(o.storage_));
 		break;
-	case result_kind::exception:
-		reinterpret_cast<std::exception_ptr &>(m_storage).~exception_ptr();
+	case kind::error_code:
+		new(&storage_) std::error_code(reinterpret_cast<std::error_code const &>(o.storage_));
+		break;
+	case kind::exception:
+		new(&storage_) std::exception_ptr(reinterpret_cast<std::exception_ptr const &>(o.storage_));
 		break;
 	}
+}
 
-	switch (o.m_kind)
+template <typename T>
+result<T>::~result()
+{
+	switch (kind_)
 	{
-	case result_kind::value:
-		m_kind = result_kind::value;
-		detail::construct_result<T>(m_kind, &m_storage, reinterpret_cast<T &&>(o.m_storage));
+	case kind::value:
+		reinterpret_cast<value_type *>(&storage_)->~value_type();
 		break;
-	case result_kind::exception:
-		m_kind = result_kind::exception;
-		new(&m_storage) std::exception_ptr(reinterpret_cast<std::exception_ptr &&>(o.m_storage));
+	case kind::error_code:
+		reinterpret_cast<std::error_code *>(&storage_)->~error_code();
+		break;
+	case kind::exception:
+		reinterpret_cast<std::exception_ptr *>(&storage_)->~exception_ptr();
 		break;
 	}
-
-	return *this;
 }
 
 template <typename T>
-aw::result_kind aw::result<T>::kind() const noexcept
+result<T>::operator bool() const noexcept
 {
-	return m_kind;
+	return this->holds_value();
 }
 
 template <typename T>
-bool aw::result<T>::has_value() const noexcept
+bool result<T>::holds_value() const noexcept
 {
-	return m_kind == result_kind::value;
+	return kind_ == kind::value;
 }
 
 template <typename T>
-bool aw::result<T>::has_exception() const noexcept
+bool result<T>::holds_error_code() const noexcept
 {
-	return m_kind == result_kind::exception;
+	return kind_ == kind::error_code;
 }
 
 template <typename T>
-T & aw::result<T>::value() noexcept
+bool result<T>::holds_exception() const noexcept
 {
-	assert(m_kind == result_kind::value);
-	return reinterpret_cast<T &>(m_storage);
+	return kind_ == kind::exception;
 }
 
 template <typename T>
-T const & aw::result<T>::value() const noexcept
-{
-	assert(m_kind == result_kind::value);
-	return reinterpret_cast<T const &>(m_storage);
-}
-
-template <typename T>
-std::exception_ptr const & aw::result<T>::exception() const noexcept
-{
-	assert(m_kind == result_kind::exception);
-	return reinterpret_cast<std::exception_ptr const &>(m_storage);
-}
-
-template <typename T>
-std::exception_ptr & aw::result<T>::exception() noexcept
-{
-	assert(m_kind == result_kind::exception);
-	return reinterpret_cast<std::exception_ptr &>(m_storage);
-}
-
-template <typename T>
-T && aw::result<T>::get()
+auto result<T>::get()
+	-> typename std::add_rvalue_reference<T>::type
 {
 	this->rethrow();
-	return std::move(this->value());
+	return std::move(*reinterpret_cast<T *>(&storage_));
+}
+
+template <>
+auto result<void>::get()
+	-> typename std::add_rvalue_reference<void>::type
+{
+	this->rethrow();
 }
 
 template <typename T>
-void aw::result<T>::rethrow() const
+std::error_code result<T>::error_code() const noexcept
 {
-	if (m_kind == result_kind::exception)
+	return *reinterpret_cast<std::error_code const *>(&storage_);
+}
+
+template <typename T>
+std::exception_ptr result<T>::exception() const noexcept
+{
+	return *reinterpret_cast<std::exception_ptr const *>(&storage_);
+}
+
+template <typename T>
+void result<T>::rethrow() const
+{
+	switch (kind_)
 	{
-		auto & ep = reinterpret_cast<std::exception_ptr const &>(m_storage);
-		assert(ep != nullptr);
-		std::rethrow_exception(ep);
+	case kind::error_code:
+		throw std::system_error(this->error_code());
+	case kind::exception:
+		std::rethrow_exception(this->exception());
 	}
 }
 
-template <typename T>
-aw::result<typename std::remove_const<typename std::remove_reference<T>::type>::type> aw::value(T && v) noexcept
-{
-	return result<typename std::remove_const<typename std::remove_reference<T>::type>::type>(in_place, std::forward<T>(v));
-}
+} // namespace libawait
+} // namespace avakar
