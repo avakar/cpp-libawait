@@ -84,8 +84,8 @@ result<T>::result(result const & o) noexcept
 	: kind_(o.kind_)
 {
 	o.visit([&](auto const & v) {
-		using T = std::decay_t<decltype(v)>;
-		new(&storage_) T(v);
+		using U = std::decay_t<decltype(v)>;
+		new(&storage_) U(v);
 	});
 }
 
@@ -94,8 +94,8 @@ result<T>::result(result && o) noexcept
 	: kind_(o.kind_)
 {
 	o.visit([&](auto && v) {
-		using T = std::decay_t<decltype(v)>;
-		new(&storage_) T(std::move(v));
+		using U = std::decay_t<decltype(v)>;
+		new(&storage_) U(std::move(v));
 	});
 }
 
@@ -105,8 +105,8 @@ result<T>::result(result<U> const & o) noexcept
 	: kind_(o.kind_)
 {
 	o.visit([&](auto const & v) {
-		using T = std::decay_t<decltype(v)>;
-		new(&storage_) T(v);
+		using V = std::decay_t<decltype(v)>;
+		new(&storage_) V(v);
 	});
 }
 
@@ -116,8 +116,8 @@ result<T>::result(result<U> && o) noexcept
 	: kind_(o.kind_)
 {
 	o.visit([&](auto && v) {
-		using T = std::decay_t<decltype(v)>;
-		new(&storage_) T(std::move(v));
+		using V = std::decay_t<decltype(v)>;
+		new(&storage_) V(std::move(v));
 	});
 }
 
@@ -125,8 +125,8 @@ template <typename T>
 result<T>::~result()
 {
 	this->visit([](auto const & v) {
-		using T = std::decay_t<decltype(v)>;
-		v.~T();
+		using U = std::decay_t<decltype(v)>;
+		v.~U();
 	});
 }
 
@@ -252,6 +252,8 @@ void result<T>::rethrow() const
 {
 	switch (kind_)
 	{
+	case detail::result_kind::value:
+		break;
 	case detail::result_kind::error_code:
 		throw std::system_error(this->error_code());
 	case detail::result_kind::exception:
