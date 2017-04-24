@@ -26,14 +26,9 @@ struct result
 		>>
 	result(U && u) noexcept;
 
-	template <typename... Args>
-	result(in_place_type_t<T>, Args &&... args) noexcept;
-
-	template <typename... Args>
-	result(in_place_type_t<std::error_code>, Args &&... args) noexcept;
-
-	template <typename... Args>
-	result(in_place_type_t<std::exception_ptr>, Args &&... args) noexcept;
+	template <typename U, typename... Args,
+		typename = std::enable_if_t<detail::result_index<U, T>::valid>>
+	result(in_place_type_t<U>, Args &&... args) noexcept;
 
 	result(result const & o) noexcept;
 	result(result && o) noexcept;
@@ -52,6 +47,12 @@ struct result
 	std::add_lvalue_reference_t<T const> operator*() const &;
 	std::add_rvalue_reference_t<T> operator*() &&;
 	std::add_rvalue_reference_t<T const> operator*() const &&;
+
+	template <typename U>
+	friend bool holds_alternative(result const & o) noexcept
+	{
+		return o.index_ == detail::result_index<U, T>::value;
+	}
 
 	explicit operator bool() const noexcept;
 	bool has_value() const noexcept;
@@ -74,7 +75,7 @@ private:
 
 	using value_type = std::conditional_t<std::is_void<T>::value, monostate, T>;
 
-	detail::result_kind kind_;
+	std::size_t index_;
 	std::aligned_union_t<0,
 		value_type,
 		std::error_code,

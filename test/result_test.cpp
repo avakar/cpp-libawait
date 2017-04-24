@@ -61,52 +61,6 @@ TEST("operator * for const aw::result<void> is valid")
 	*r;
 }
 
-TEST("operator * for aw::result rethrows")
-{
-	aw::result<mockobject> r = std::make_exception_ptr(1);
-	chk_exc(int, *r);
-}
-
-TEST("operator * for aw::result<void> rethrows")
-{
-	aw::result<void> r = std::make_exception_ptr(1);
-	chk_exc(int, *r);
-}
-
-TEST("operator -> for aw::result rethrows")
-{
-	aw::result<mockobject> r = std::make_exception_ptr(1);
-	chk_exc(int, r->value);
-}
-
-TEST("operator * for const aw::result rethrows")
-{
-	aw::result<mockobject> const r = std::make_exception_ptr(1);
-	chk_exc(int, *r);
-}
-
-TEST("operator * for const aw::result<void> rethrows")
-{
-	aw::result<void> const r = std::make_exception_ptr(1);
-	chk_exc(int, *r);
-}
-
-TEST("operator -> for const aw::result rethrows")
-{
-	aw::result<mockobject> const r = std::make_exception_ptr(1);
-	chk_exc(int, r->value);
-}
-
-TEST("operator * for aw::result returns lvalue ref")
-{
-	int counter = 0;
-
-	aw::result<mockobject> r1 = &counter;
-	aw::result<mockobject> r2 = *r1;
-
-	chk counter == 2;
-}
-
 TEST("operator * for moving aw::result returns rvalue ref")
 {
 	int counter = 0;
