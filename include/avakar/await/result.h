@@ -21,9 +21,7 @@ struct result
 	result() noexcept;
 
 	template <typename U,
-		typename = std::enable_if_t<
-		!detail::is_result<typename std::decay<U>::type>::value
-		>>
+		typename = std::enable_if_t<!detail::is_result<std::decay_t<U>>::value>>
 	result(U && u) noexcept;
 
 	template <typename U, typename... Args,
@@ -58,6 +56,30 @@ struct result
 	bool has_value() const noexcept;
 	bool has_error_code() const noexcept;
 	bool has_exception() const noexcept;
+
+	template <typename U>
+	friend U const * get_if(result const & o) noexcept
+	{
+		return holds_alternative<U>(o)? reinterpret_cast<U const *>(&o.storage_): nullptr;
+	}
+
+	template <typename U>
+	friend U const * get_if(result const && o) noexcept
+	{
+		return holds_alternative<U>(o) ? reinterpret_cast<U const *>(&o.storage_) : nullptr;
+	}
+
+	template <typename U>
+	friend U * get_if(result & o) noexcept
+	{
+		return holds_alternative<U>(o) ? reinterpret_cast<U *>(&o.storage_) : nullptr;
+	}
+
+	template <typename U>
+	friend U * get_if(result && o) noexcept
+	{
+		return holds_alternative<U>(o) ? reinterpret_cast<U *>(&o.storage_) : nullptr;
+	}
 
 	auto get()
 		-> std::add_rvalue_reference_t<T>;

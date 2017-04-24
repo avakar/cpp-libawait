@@ -285,3 +285,33 @@ TEST("aw::result converts by move correctly")
 	chk r2.get().value == 3;
 	chk r1.get().value == -1;
 }
+
+TEST("get_if can retrieve T from aw::result<T>")
+{
+	using aw::get_if;
+
+	aw::result<mockobject> r1 = 1;
+	chk get_if<mockobject>(r1) != nullptr;
+	chk get_if<std::error_code>(r1) == nullptr;
+	chk get_if<std::exception_ptr>(r1) == nullptr;
+}
+
+TEST("get_if can retrieve error_code from aw::result<T>")
+{
+	using aw::get_if;
+
+	aw::result<mockobject> r1 = std::make_error_code(std::errc::invalid_argument);
+	chk get_if<mockobject>(r1) == nullptr;
+	chk get_if<std::error_code>(r1) != nullptr;
+	chk get_if<std::exception_ptr>(r1) == nullptr;
+}
+
+TEST("get_if can retrieve exception from aw::result<T>")
+{
+	using aw::get_if;
+
+	aw::result<mockobject> r1 = std::make_exception_ptr(1);
+	chk get_if<mockobject>(r1) == nullptr;
+	chk get_if<std::error_code>(r1) == nullptr;
+	chk get_if<std::exception_ptr>(r1) != nullptr;
+}
