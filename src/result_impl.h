@@ -1,4 +1,5 @@
 #include <utility>
+#include <assert.h>
 
 namespace avakar {
 namespace libawait {
@@ -142,52 +143,28 @@ template <typename T>
 std::add_lvalue_reference_t<T> result<T>::operator*() &
 {
 	this->rethrow();
-	return reinterpret_cast<value_type &>(storage_);
-}
-
-template <>
-inline std::add_lvalue_reference_t<void> result<void>::operator*() &
-{
-	this->rethrow();
+	return aw::get<T>(*this);
 }
 
 template <typename T>
 std::add_rvalue_reference_t<T> result<T>::operator*() &&
 {
 	this->rethrow();
-	return reinterpret_cast<value_type &&>(storage_);
-}
-
-template <>
-inline std::add_rvalue_reference_t<void> result<void>::operator*() &&
-{
-	this->rethrow();
+	return aw::get<T>(std::move(*this));
 }
 
 template <typename T>
 std::add_lvalue_reference_t<T const> result<T>::operator*() const &
 {
 	this->rethrow();
-	return reinterpret_cast<value_type const &>(storage_);
-}
-
-template <>
-inline std::add_lvalue_reference_t<void const> result<void>::operator*() const &
-{
-	this->rethrow();
+	return aw::get<T>(*this);
 }
 
 template <typename T>
 std::add_rvalue_reference_t<T const> result<T>::operator*() const &&
 {
 	this->rethrow();
-	return reinterpret_cast<value_type const &&>(storage_);
-}
-
-template <>
-inline std::add_rvalue_reference_t<void const> result<void>::operator*() const &&
-{
-	this->rethrow();
+	return aw::get<T>(std::move(*this));
 }
 
 template <typename T>
@@ -287,6 +264,88 @@ void result<T>::visit(Visitor && vis) const
 		std::forward<Visitor>(vis)(reinterpret_cast<std::exception_ptr const &>(storage_));
 		break;
 	}
+}
+
+template <typename U, typename T>
+bool holds_alternative(result<T> const & o) noexcept
+{
+	return detail::result_storage::index(o) == detail::result_index<U, T>::value;
+}
+
+template <typename U, typename T>
+U const * get_if(result<T> const & o) noexcept
+{
+	return holds_alternative<U>(o) ? reinterpret_cast<U const *>(detail::result_storage::get(o)) : nullptr;
+}
+
+template <typename U, typename T>
+U const * get_if(result<T> const && o) noexcept
+{
+	return holds_alternative<U>(o) ? reinterpret_cast<U const *>(detail::result_storage::get(o)) : nullptr;
+}
+
+template <typename U, typename T>
+U * get_if(result<T> & o) noexcept
+{
+	return holds_alternative<U>(o) ? reinterpret_cast<U *>(detail::result_storage::get(o)) : nullptr;
+}
+
+template <typename U, typename T>
+U * get_if(result<T> && o) noexcept
+{
+	return holds_alternative<U>(o) ? reinterpret_cast<U *>(detail::result_storage::get(o)) : nullptr;
+}
+
+template <typename U, typename T>
+std::add_lvalue_reference_t<U const> get(result<T> const & o) noexcept
+{
+	assert(holds_alternative<U>(o));
+	return *reinterpret_cast<U const *>(detail::result_storage::get(o));
+}
+
+template <typename U, typename T>
+std::add_rvalue_reference_t<U const> get(result<T> const && o) noexcept
+{
+	assert(holds_alternative<U>(o));
+	return std::move(*reinterpret_cast<U const *>(detail::result_storage::get(o)));
+}
+
+template <typename U, typename T>
+std::add_lvalue_reference_t<U> get(result<T> & o) noexcept
+{
+	assert(holds_alternative<U>(o));
+	return *reinterpret_cast<U *>(detail::result_storage::get(o));
+}
+
+template <typename U, typename T>
+std::add_rvalue_reference_t<U> get(result<T> && o) noexcept
+{
+	assert(holds_alternative<U>(o));
+	return std::move(*reinterpret_cast<U *>(detail::result_storage::get(o)));
+}
+
+template <>
+std::add_lvalue_reference_t<void const> get<void>(result<void> const & o) noexcept
+{
+	assert(holds_alternative<void>(o));
+}
+
+template <>
+std::add_rvalue_reference_t<void const> get<void>(result<void> const && o) noexcept
+{
+	assert(holds_alternative<void>(o));
+}
+
+template <>
+std::add_lvalue_reference_t<void> get<void>(result<void> & o) noexcept
+{
+	assert(holds_alternative<void>(o));
+}
+
+template <>
+std::add_rvalue_reference_t<void> get<void>(result<void> && o) noexcept
+{
+	assert(holds_alternative<void>(o));
 }
 
 } // namespace libawait

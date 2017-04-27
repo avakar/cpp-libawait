@@ -10,6 +10,33 @@
 namespace avakar {
 namespace libawait {
 
+namespace aw = ::avakar::libawait;
+
+namespace detail {
+
+struct result_storage
+{
+	template <typename T>
+	static void * get(result<T> & r)
+	{
+		return &r.storage_;
+	}
+
+	template <typename T>
+	static void const * get(result<T> const & r)
+	{
+		return &r.storage_;
+	}
+
+	template <typename T>
+	static size_t index(result<T> const & r)
+	{
+		return r.index_;
+	}
+};
+
+}
+
 template <typename T>
 struct in_place_type_t
 {
@@ -46,40 +73,10 @@ struct result
 	std::add_rvalue_reference_t<T> operator*() &&;
 	std::add_rvalue_reference_t<T const> operator*() const &&;
 
-	template <typename U>
-	friend bool holds_alternative(result const & o) noexcept
-	{
-		return o.index_ == detail::result_index<U, T>::value;
-	}
-
 	explicit operator bool() const noexcept;
 	bool has_value() const noexcept;
 	bool has_error_code() const noexcept;
 	bool has_exception() const noexcept;
-
-	template <typename U>
-	friend U const * get_if(result const & o) noexcept
-	{
-		return holds_alternative<U>(o)? reinterpret_cast<U const *>(&o.storage_): nullptr;
-	}
-
-	template <typename U>
-	friend U const * get_if(result const && o) noexcept
-	{
-		return holds_alternative<U>(o) ? reinterpret_cast<U const *>(&o.storage_) : nullptr;
-	}
-
-	template <typename U>
-	friend U * get_if(result & o) noexcept
-	{
-		return holds_alternative<U>(o) ? reinterpret_cast<U *>(&o.storage_) : nullptr;
-	}
-
-	template <typename U>
-	friend U * get_if(result && o) noexcept
-	{
-		return holds_alternative<U>(o) ? reinterpret_cast<U *>(&o.storage_) : nullptr;
-	}
 
 	auto get()
 		-> std::add_rvalue_reference_t<T>;
@@ -106,7 +103,36 @@ private:
 
 	template <typename U>
 	friend struct result;
+
+	friend struct detail::result_storage;
 };
+
+template <typename U, typename T>
+bool holds_alternative(result<T> const & o) noexcept;
+
+template <typename U, typename T>
+U const * get_if(result<T> const & o) noexcept;
+
+template <typename U, typename T>
+U const * get_if(result<T> const && o) noexcept;
+
+template <typename U, typename T>
+U * get_if(result<T> & o) noexcept;
+
+template <typename U, typename T>
+U * get_if(result<T> && o) noexcept;
+
+template <typename U, typename T>
+std::add_lvalue_reference_t<U const> get(result<T> const & o) noexcept;
+
+template <typename U, typename T>
+std::add_rvalue_reference_t<U const> get(result<T> const && o) noexcept;
+
+template <typename U, typename T>
+std::add_lvalue_reference_t<U> get(result<T> & o) noexcept;
+
+template <typename U, typename T>
+std::add_rvalue_reference_t<U> get(result<T> && o) noexcept;
 
 } // namespace libawait
 } // namespace avakar
