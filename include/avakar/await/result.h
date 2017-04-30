@@ -12,31 +12,6 @@ namespace libawait {
 
 namespace aw = ::avakar::libawait;
 
-namespace detail {
-
-struct result_storage
-{
-	template <typename T>
-	static void * get(result<T> & r)
-	{
-		return &r.storage_;
-	}
-
-	template <typename T>
-	static void const * get(result<T> const & r)
-	{
-		return &r.storage_;
-	}
-
-	template <typename T>
-	static size_t index(result<T> const & r)
-	{
-		return r.index_;
-	}
-};
-
-}
-
 template <typename T>
 struct in_place_type_t
 {
