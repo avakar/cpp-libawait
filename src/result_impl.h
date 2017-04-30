@@ -223,27 +223,44 @@ auto result<void>::get()
 }
 
 template <typename T>
-std::error_code result<T>::error_code() const noexcept
-{
-	return *reinterpret_cast<std::error_code const *>(&storage_);
-}
-
-template <typename T>
 std::exception_ptr result<T>::exception() const noexcept
 {
 	return *reinterpret_cast<std::exception_ptr const *>(&storage_);
 }
 
 template <typename T>
-void result<T>::rethrow() const
+template <typename Visitor>
+void result<T>::visit_error(Visitor && vis) const
 {
+	assert(index_ != 0);
+
 	switch (index_)
 	{
 	case 1:
-		throw std::system_error(this->error_code());
+		std::forward<Visitor>(vis)(*reinterpret_cast<std::error_code const *>(&storage_));
 	case 2:
-		std::rethrow_exception(this->exception());
+		std::forward<Visitor>(vis)(*reinterpret_cast<std::exception_ptr const *>(&storage_));
 	}
+}
+
+template <typename T>
+void result<T>::rethrow() const
+{
+	struct X
+	{
+		void operator()(std::error_code const & err)
+		{
+			throw std::system_error(err);
+		}
+
+		void operator()(std::exception_ptr const & exc)
+		{
+			std::rethrow_exception(exc);
+		}
+	};
+
+	if (!this->has_value())
+		visit_error(X());
 }
 
 template <typename T>

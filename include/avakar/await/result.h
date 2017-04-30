@@ -85,7 +85,9 @@ struct result
 		-> std::add_rvalue_reference_t<T>;
 
 private:
-	std::error_code error_code() const noexcept;
+	template <typename Visitor>
+	void visit_error(Visitor && vis) const;
+
 	std::exception_ptr exception() const noexcept;
 	void rethrow() const;
 
