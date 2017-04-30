@@ -90,7 +90,7 @@ result<T>::result(result<U> const & o) noexcept
 		using M = decltype(m);
 		using O = _meta::sub_t<typename result<U>::_types, M::index>;
 
-		m.copy<O>(&storage_, &o.storage_);
+		m.template copy<O>(&storage_, &o.storage_);
 	});
 }
 
@@ -103,7 +103,7 @@ result<T>::result(result<U> && o) noexcept
 		using M = decltype(m);
 		using O = _meta::sub_t<typename result<U>::_types, M::index>;
 
-		m.move<O>(&storage_, &o.storage_);
+		m.template move<O>(&storage_, &o.storage_);
 	});
 }
 
