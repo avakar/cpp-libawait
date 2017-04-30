@@ -386,5 +386,15 @@ std::add_rvalue_reference_t<void> get<void>(result<void> && o) noexcept
 	assert(holds_alternative<void>(o));
 }
 
+template <typename T>
+template <typename U>
+result<U> result<T>::convert_error()
+{
+	return this->visit_error([](auto const & err) {
+		using E = std::decay_t<decltype(err)>;
+		return result<U>(in_place_type_t<E>(), err);
+	});
+}
+
 } // namespace libawait
 } // namespace avakar

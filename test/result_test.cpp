@@ -396,3 +396,21 @@ TEST("aw::result<T>::exception can recover an exception_ptr")
 	aw::result<mockobject> r1 = exc;
 	chk r1.exception() == exc;
 }
+
+TEST("aw::result<T>::convert_error works with error_code")
+{
+	aw::result<mockobject> r1 = std::make_error_code(std::errc::invalid_argument);
+	aw::result<int> r2 = r1.convert_error<int>();
+
+	chk aw::holds_alternative<std::error_code>(r2);
+	chk aw::get<std::error_code>(r2) == std::errc::invalid_argument;
+}
+
+TEST("aw::result<T>::convert_error works with exception_ptr")
+{
+	aw::result<mockobject> r1 = std::make_exception_ptr(1);
+	aw::result<int> r2 = r1.convert_error<int>();
+
+	chk aw::holds_alternative<std::exception_ptr>(r2);
+	chk_exc(int, r2.value());
+}

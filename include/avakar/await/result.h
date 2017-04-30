@@ -61,6 +61,9 @@ struct result
 	auto get()
 		-> std::add_rvalue_reference_t<T>;
 
+	template <typename U>
+	result<U> convert_error();
+
 private:
 	template <typename Visitor>
 	detail::visit_error_result_t<Visitor> visit_error(Visitor && vis) const;
