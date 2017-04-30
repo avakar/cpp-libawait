@@ -208,18 +208,6 @@ bool result<T>::has_value() const noexcept
 }
 
 template <typename T>
-bool result<T>::has_error_code() const noexcept
-{
-	return holds_alternative<std::error_code>(*this);
-}
-
-template <typename T>
-bool result<T>::has_exception() const noexcept
-{
-	return holds_alternative<std::exception_ptr>(*this);
-}
-
-template <typename T>
 auto result<T>::get()
 	-> typename std::add_rvalue_reference<T>::type
 {

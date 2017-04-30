@@ -170,39 +170,39 @@ TEST("aw::result::has_value is false while holding an exception")
 TEST("aw::result::has_error_code is false while holding a value")
 {
 	aw::result<mockobject> r;
-	chk !r.has_error_code();
+	chk !aw::holds_alternative<std::error_code>(r);
 }
 
 TEST("aw::result::has_error_code is true while holding an error_code")
 {
 	aw::result<mockobject> r(aw::in_place_type_t<std::error_code>(),
 		std::make_error_code(std::errc::invalid_argument));
-	chk r.has_error_code();
+	chk aw::holds_alternative<std::error_code>(r);
 }
 
 TEST("aw::result::has_error_code is false while holding an exception")
 {
 	aw::result<mockobject> r(aw::in_place_type_t<std::exception_ptr>(), std::make_exception_ptr(1));
-	chk !r.has_error_code();
+	chk !aw::holds_alternative<std::error_code>(r);
 }
 
 TEST("aw::result::has_exception is false while holding a value")
 {
 	aw::result<mockobject> r;
-	chk !r.has_exception();
+	chk !aw::holds_alternative<std::exception_ptr>(r);
 }
 
 TEST("aw::result::has_exception is false while holding an error_code")
 {
 	aw::result<mockobject> r(aw::in_place_type_t<std::error_code>(),
 		std::make_error_code(std::errc::invalid_argument));
-	chk !r.has_exception();
+	chk !aw::holds_alternative<std::exception_ptr>(r);
 }
 
 TEST("aw::result::has_exception is true while holding an exception")
 {
 	aw::result<mockobject> r(aw::in_place_type_t<std::exception_ptr>(), std::make_exception_ptr(1));
-	chk r.has_exception();
+	chk aw::holds_alternative<std::exception_ptr>(r);
 }
 
 TEST("aw::result<void>() shall hold a value")
@@ -284,14 +284,14 @@ TEST("aw::result can initialize implicitly from value")
 TEST("aw::result can initialize implicitly from error_code")
 {
 	aw::result<mockobject> r = std::make_error_code(std::errc::invalid_argument);
-	chk r.has_error_code();
+	chk aw::holds_alternative<std::error_code>(r);
 	chk_exc(std::system_error, r.get());
 }
 
 TEST("aw::result can initialize implicitly from exception_ptr")
 {
 	aw::result<mockobject> r = std::make_exception_ptr(1);
-	chk r.has_exception();
+	chk aw::holds_alternative<std::exception_ptr>(r);
 	chk_exc(int, r.get());
 }
 
@@ -361,4 +361,22 @@ TEST("get_if can retrieve exception from aw::result<T>")
 	chk get_if<mockobject>(r1) == nullptr;
 	chk get_if<std::error_code>(r1) == nullptr;
 	chk get_if<std::exception_ptr>(r1) != nullptr;
+}
+
+TEST("get can retrieve T from aw::result<T>")
+{
+	aw::result<mockobject> r1 = 1;
+	chk aw::get<mockobject>(r1).value == 3;
+}
+
+TEST("get can retrieve error_code from aw::result<T>")
+{
+	aw::result<mockobject> r1 = std::make_error_code(std::errc::invalid_argument);
+	chk aw::get<std::error_code>(r1) == std::errc::invalid_argument;
+}
+
+TEST("get can retrieve exception from aw::result<T>")
+{
+	aw::result<mockobject> r1 = std::make_exception_ptr(1);
+	chk aw::get<std::exception_ptr>(r1) != nullptr;
 }

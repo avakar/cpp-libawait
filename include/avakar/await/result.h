@@ -80,8 +80,6 @@ struct result
 
 	explicit operator bool() const noexcept;
 	bool has_value() const noexcept;
-	bool has_error_code() const noexcept;
-	bool has_exception() const noexcept;
 
 	auto get()
 		-> std::add_rvalue_reference_t<T>;
