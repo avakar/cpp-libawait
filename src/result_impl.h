@@ -247,7 +247,7 @@ template <typename T>
 template <typename Visitor>
 detail::visit_error_result_t<Visitor> result<T>::visit_error(Visitor && vis) const
 {
-	assert(index_ != 0);
+	assert(!this->has_value());
 
 	switch (index_)
 	{
@@ -256,6 +256,8 @@ detail::visit_error_result_t<Visitor> result<T>::visit_error(Visitor && vis) con
 	case 2:
 		return std::forward<Visitor>(vis)(*reinterpret_cast<std::exception_ptr const *>(&storage_));
 	}
+
+	std::abort();
 }
 
 template <typename T>
