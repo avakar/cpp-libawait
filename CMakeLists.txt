@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(common_srcs
     include/avakar/await/monostate.h
     include/avakar/await/result.h
+    src/meta.h
     src/result_impl.h
     src/result_traits.h
     src/result.cpp

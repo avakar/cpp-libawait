@@ -1,116 +1,18 @@
 #ifndef AVAKAR_LIBAWAIT_VARIANT_STORAGE_H
 #define AVAKAR_LIBAWAIT_VARIANT_STORAGE_H
 
+#include "../../../src/meta.h"
 #include <type_traits>
 
 namespace avakar {
 namespace libawait {
 namespace detail {
 
-template <typename... Tn>
-struct list;
-
-template <typename L>
-struct length;
-
-template <typename... Tn>
-struct length<list<Tn...>>
-	: std::integral_constant<size_t, sizeof...(Tn)>
-{
-};
-
-template <typename T, typename L>
-struct index_of;
-
-template <typename T, typename... Tn>
-struct index_of<T, list<T, Tn...>>
-	: std::integral_constant<size_t, 0>
-{
-};
-
-template <typename T, typename T0, typename... Tn>
-struct index_of<T, list<T0, Tn...>>
-	: std::integral_constant<size_t, 1 + index_of<T, list<Tn...>>::value>
-{
-};
-
-template <typename L, size_t I>
-struct sub;
-
-template <typename L, size_t I>
-using sub_t = typename sub<L, I>::type;
-
-template <typename T0, typename... Tn>
-struct sub<list<T0, Tn...>, 0>
-{
-	using type = T0;
-};
-
-template <typename T0, typename... Tn, size_t I>
-struct sub<list<T0, Tn...>, I>
-{
-	using type = sub_t<list<Tn...>, I-1>;
-};
-
-template <typename... Ln>
-struct concat;
-
-template <typename... Ln>
-using concat_t = typename concat<Ln...>::type;
-
-template <>
-struct concat<>
-{
-	using type = list<>;
-};
-
-template <typename T>
-struct concat<T>
-{
-	using type = list<T>;
-};
-
-template <typename... Tn>
-struct concat<list<Tn...>>
-{
-	using type = list<Tn...>;
-};
-
-template <typename... T1n, typename... T2n>
-struct concat<list<T1n...>, list<T2n...>>
-{
-	using type = list<T1n..., T2n...>;
-};
-
-template <typename T1, typename... T2n>
-struct concat<T1, list<T2n...>>
-{
-	using type = list<T1, T2n...>;
-};
-
-template <typename... T1n, typename T2>
-struct concat<list<T1n...>, T2>
-{
-	using type = list<T1n..., T2>;
-};
-
-template <typename T1, typename T2>
-struct concat<T1, T2>
-{
-	using type = list<T1, T2>;
-};
-
-template <typename L1, typename L2, typename... Ln>
-struct concat<L1, L2, Ln...>
-{
-	using type = concat_t<concat_t<L1, L2>, Ln...>;
-};
-
 template <typename... Types>
 struct variant_storage_impl;
 
 template <typename... Types>
-struct variant_storage_impl<list<Types...>>
+struct variant_storage_impl<_meta::list<Types...>>
 {
 	using type = std::aligned_union_t<0, Types...>;
 };
@@ -134,20 +36,20 @@ template <typename L>
 struct variant_storage_type_filter;
 
 template <>
-struct variant_storage_type_filter<list<>>
+struct variant_storage_type_filter<_meta::list<>>
 {
-	using type = list<>;
+	using type = _meta::list<>;
 };
 
 template <typename T0, typename... Tn>
-struct variant_storage_type_filter<list<T0, Tn...>>
+struct variant_storage_type_filter<_meta::list<T0, Tn...>>
 {
-	using _filtered_tail = typename variant_storage_type_filter<list<Tn...>>::type;
+	using _filtered_tail = typename variant_storage_type_filter<_meta::list<Tn...>>::type;
 
 	using type = std::conditional_t<
 		std::is_void<T0>::value,
 		_filtered_tail,
-		concat_t<variant_storage_member_t<T0>, _filtered_tail>>;
+		_meta::concat_t<variant_storage_member_t<T0>, _filtered_tail>>;
 };
 
 template <typename L>
@@ -160,7 +62,7 @@ template <typename L, typename I, typename Visitor, typename... Args>
 struct visit_impl;
 
 template <typename... Tn, size_t... In, typename Visitor, typename... Args>
-struct visit_impl<list<Tn...>, std::index_sequence<In...>, Visitor, Args...>
+struct visit_impl<_meta::list<Tn...>, std::index_sequence<In...>, Visitor, Args...>
 {
 	template <typename T, size_t I>
 	static void visit_one(Visitor && visitor, Args &&... args)
@@ -180,7 +82,7 @@ struct visit_impl<list<Tn...>, std::index_sequence<In...>, Visitor, Args...>
 template <typename L, typename Visitor, typename... Args>
 void variant_visit(size_t index, Visitor && visitor, Args &&... args)
 {
-	visit_impl<L, std::make_index_sequence<length<L>::value>, Visitor, Args...>
+	visit_impl<L, std::make_index_sequence<_meta::length<L>::value>, Visitor, Args...>
 		::visit(std::forward<Visitor>(visitor), index, std::forward<Args>(args)...);
 }
 

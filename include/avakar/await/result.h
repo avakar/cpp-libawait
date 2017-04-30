@@ -71,10 +71,10 @@ private:
 
 	void rethrow() const;
 
-	using _types = detail::list<T, std::error_code, std::exception_ptr>;
+	using _types = _meta::list<T, std::error_code, std::exception_ptr>;
 
 	template <typename U>
-	using storage_index = detail::index_of<U, _types>;
+	using storage_index = _meta::index_of<U, _types>;
 
 	std::size_t index_;
 	detail::variant_storage_t<_types> storage_;
