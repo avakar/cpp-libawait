@@ -31,7 +31,7 @@ struct basic_mockobject
 
 	template <typename U,
 		typename = std::enable_if_t<std::is_convertible<U, T>::value>>
-		basic_mockobject(basic_mockobject<U> && o)
+	basic_mockobject(basic_mockobject<U> && o)
 		: counter_(o.counter_), value(o.value)
 	{
 		o.counter_ = nullptr;
@@ -39,8 +39,8 @@ struct basic_mockobject
 	}
 
 	template <typename U,
-		typename = std::enable_if_t<std::is_convertible<U &, T &>::value>>
-		basic_mockobject(basic_mockobject<U> const & o)
+		typename = std::enable_if_t<std::is_convertible<U, T>::value>>
+	basic_mockobject(basic_mockobject<U> const & o)
 		: counter_(o.counter_), value(o.value)
 	{
 		if (counter_)
