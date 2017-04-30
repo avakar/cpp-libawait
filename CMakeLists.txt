@@ -12,6 +12,7 @@ set(common_srcs
     src/result_impl.h
     src/result_traits.h
     src/result.cpp
+    src/variant_storage.h
     )
 
 if (WIN32)

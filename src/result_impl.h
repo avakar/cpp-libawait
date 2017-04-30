@@ -38,17 +38,6 @@ struct choose_result_overload<U, void>
 template <typename U, typename T>
 using choose_result_overload_t = typename choose_result_overload<U, T>::type;
 
-template <typename T, typename... Args>
-void construct_storage(void * storage, Args &&... args)
-{
-	new(storage) T(std::forward<Args>(args)...);
-}
-
-template <>
-void construct_storage<void>(void * storage)
-{
-}
-
 }
 
 template <typename T>
@@ -71,16 +60,15 @@ template <typename U, typename... Args, typename>
 result<T>::result(in_place_type_t<U>, Args &&... args) noexcept
 	: index_(detail::result_index<U, T>::value)
 {
-	detail::construct_storage<U>(&storage_, std::forward<Args>(args)...);
+	detail::variant_member<U>::construct(&storage_, std::forward<Args>(args)...);
 }
 
 template <typename T>
 result<T>::result(result const & o) noexcept
 	: index_(o.index_)
 {
-	o.visit([&](auto const & v) {
-		using U = std::decay_t<decltype(v)>;
-		new(&storage_) U(v);
+	detail::variant_visit<_types>(index_, [this, &o](auto m) {
+		m.copy(&storage_, &o.storage_);
 	});
 }
 
@@ -88,9 +76,8 @@ template <typename T>
 result<T>::result(result && o) noexcept
 	: index_(o.index_)
 {
-	o.visit([&](auto && v) {
-		using U = std::decay_t<decltype(v)>;
-		new(&storage_) U(std::move(v));
+	detail::variant_visit<_types>(index_, [this, &o](auto m) {
+		m.move(&storage_, &o.storage_);
 	});
 }
 
@@ -99,9 +86,11 @@ template <typename U>
 result<T>::result(result<U> const & o) noexcept
 	: index_(o.index_)
 {
-	o.visit([&](auto const & v) {
-		using V = std::decay_t<decltype(v)>;
-		new(&storage_) V(v);
+	detail::variant_visit<_types>(index_, [this, &o](auto m) {
+		using M = decltype(m);
+		using O = detail::sub_t<typename result<U>::_types, M::index>;
+
+		m.copy<O>(&storage_, &o.storage_);
 	});
 }
 
@@ -110,18 +99,19 @@ template <typename U>
 result<T>::result(result<U> && o) noexcept
 	: index_(o.index_)
 {
-	o.visit([&](auto && v) {
-		using V = std::decay_t<decltype(v)>;
-		new(&storage_) V(std::move(v));
+	detail::variant_visit<_types>(index_, [this, &o](auto m) {
+		using M = decltype(m);
+		using O = detail::sub_t<typename result<U>::_types, M::index>;
+
+		m.move<O>(&storage_, &o.storage_);
 	});
 }
 
 template <typename T>
 result<T>::~result()
 {
-	this->visit([](auto const & v) {
-		using U = std::decay_t<decltype(v)>;
-		v.~U();
+	detail::variant_visit<_types>(index_, [this](auto m) {
+		m.destruct(&storage_);
 	});
 }
 
@@ -129,14 +119,14 @@ template <typename T>
 T * result<T>::operator->()
 {
 	assert(this->has_value());
-	return reinterpret_cast<value_type *>(&storage_);
+	return aw::get_if<T>(*this);
 }
 
 template <typename T>
 T const * result<T>::operator->() const
 {
 	assert(this->has_value());
-	return reinterpret_cast<value_type const *>(&storage_);
+	return aw::get_if<T>(*this);
 }
 
 template <typename T>
@@ -266,42 +256,6 @@ void result<T>::rethrow() const
 	std::exception_ptr exc = this->exception();
 	if (exc)
 		std::rethrow_exception(exc);
-}
-
-template <typename T>
-template <typename Visitor>
-void result<T>::visit(Visitor && vis)
-{
-	switch (index_)
-	{
-	case 0:
-		std::forward<Visitor>(vis)(reinterpret_cast<value_type &&>(storage_));
-		break;
-	case 1:
-		std::forward<Visitor>(vis)(reinterpret_cast<std::error_code &&>(storage_));
-		break;
-	case 2:
-		std::forward<Visitor>(vis)(reinterpret_cast<std::exception_ptr &&>(storage_));
-		break;
-	}
-}
-
-template <typename T>
-template <typename Visitor>
-void result<T>::visit(Visitor && vis) const
-{
-	switch (index_)
-	{
-	case 0:
-		std::forward<Visitor>(vis)(reinterpret_cast<value_type const &>(storage_));
-		break;
-	case 1:
-		std::forward<Visitor>(vis)(reinterpret_cast<std::error_code const &>(storage_));
-		break;
-	case 2:
-		std::forward<Visitor>(vis)(reinterpret_cast<std::exception_ptr const &>(storage_));
-		break;
-	}
 }
 
 template <typename U, typename T>

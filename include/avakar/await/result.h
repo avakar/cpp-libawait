@@ -3,6 +3,7 @@
 
 #include "monostate.h"
 #include "../../../src/result_traits.h"
+#include "../../../src/variant_storage.h"
 #include <type_traits>
 #include <system_error>
 #include <exception>
@@ -70,20 +71,13 @@ private:
 
 	void rethrow() const;
 
-	template <typename Visitor>
-	void visit(Visitor && vis);
+	using _types = detail::list<T, std::error_code, std::exception_ptr>;
 
-	template <typename Visitor>
-	void visit(Visitor && vis) const;
-
-	using value_type = std::conditional_t<std::is_void<T>::value, monostate, T>;
+	template <typename U>
+	using storage_index = detail::index_of<U, _types>;
 
 	std::size_t index_;
-	std::aligned_union_t<0,
-		value_type,
-		std::error_code,
-		std::exception_ptr
-		> storage_;
+	detail::variant_storage_t<_types> storage_;
 
 	template <typename U>
 	friend struct result;
