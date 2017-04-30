@@ -380,3 +380,19 @@ TEST("get can retrieve exception from aw::result<T>")
 	aw::result<mockobject> r1 = std::make_exception_ptr(1);
 	chk aw::get<std::exception_ptr>(r1) != nullptr;
 }
+
+TEST("aw::result<T>::exception can recover an error_code")
+{
+	aw::result<mockobject> r1 = std::make_error_code(std::errc::invalid_argument);
+
+	std::exception_ptr exc = r1.exception();
+	chk exc != nullptr;
+	chk_exc(std::system_error, std::rethrow_exception(exc));
+}
+
+TEST("aw::result<T>::exception can recover an exception_ptr")
+{
+	std::exception_ptr exc = std::make_exception_ptr(1);
+	aw::result<mockobject> r1 = exc;
+	chk r1.exception() == exc;
+}

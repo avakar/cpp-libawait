@@ -53,6 +53,8 @@ struct result
 	std::add_rvalue_reference_t<T> value() && ;
 	std::add_rvalue_reference_t<T const> value() const &&;
 
+	std::exception_ptr exception() const noexcept;
+
 	explicit operator bool() const noexcept;
 	bool has_value() const noexcept;
 
@@ -61,9 +63,8 @@ struct result
 
 private:
 	template <typename Visitor>
-	void visit_error(Visitor && vis) const;
+	detail::visit_error_result_t<Visitor> visit_error(Visitor && vis) const;
 
-	std::exception_ptr exception() const noexcept;
 	void rethrow() const;
 
 	template <typename Visitor>

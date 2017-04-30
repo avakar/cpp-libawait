@@ -79,6 +79,11 @@ struct result_index
 	static constexpr size_t value = impl::value;
 };
 
+template <typename Visitor>
+using visit_error_result_t = std::common_type_t<
+	decltype(std::declval<Visitor>()(std::declval<std::error_code const &>())),
+	decltype(std::declval<Visitor>()(std::declval<std::exception_ptr const &>()))>;
+
 } // namespace detail
 } // namespace libawait
 } // namespace avakar
