@@ -128,40 +128,68 @@ result<T>::~result()
 template <typename T>
 T * result<T>::operator->()
 {
-	this->rethrow();
+	assert(this->has_value());
 	return reinterpret_cast<value_type *>(&storage_);
 }
 
 template <typename T>
 T const * result<T>::operator->() const
 {
-	this->rethrow();
+	assert(this->has_value());
 	return reinterpret_cast<value_type const *>(&storage_);
 }
 
 template <typename T>
 std::add_lvalue_reference_t<T> result<T>::operator*() &
 {
-	this->rethrow();
+	assert(this->has_value());
 	return aw::get<T>(*this);
 }
 
 template <typename T>
 std::add_rvalue_reference_t<T> result<T>::operator*() &&
 {
-	this->rethrow();
+	assert(this->has_value());
 	return aw::get<T>(std::move(*this));
 }
 
 template <typename T>
 std::add_lvalue_reference_t<T const> result<T>::operator*() const &
 {
-	this->rethrow();
+	assert(this->has_value());
 	return aw::get<T>(*this);
 }
 
 template <typename T>
 std::add_rvalue_reference_t<T const> result<T>::operator*() const &&
+{
+	assert(this->has_value());
+	return aw::get<T>(std::move(*this));
+}
+
+template <typename T>
+std::add_lvalue_reference_t<T> result<T>::value() &
+{
+	this->rethrow();
+	return aw::get<T>(*this);
+}
+
+template <typename T>
+std::add_lvalue_reference_t<T const> result<T>::value() const &
+{
+	this->rethrow();
+	return aw::get<T>(*this);
+}
+
+template <typename T>
+std::add_rvalue_reference_t<T> result<T>::value() &&
+{
+	this->rethrow();
+	return aw::get<T>(std::move(*this));
+}
+
+template <typename T>
+std::add_rvalue_reference_t<T const> result<T>::value() const &&
 {
 	this->rethrow();
 	return aw::get<T>(std::move(*this));

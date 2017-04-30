@@ -77,28 +77,75 @@ TEST("operator * for rval const aw::result returns const rvalue ref")
 	chk std::is_same<mockobject const &&, decltype(*std::move(r1))>::value;
 }
 
-TEST("operator * for rval aw::result rethrows")
+TEST("a value in aw::result can be accessed via .value()")
+{
+	aw::result<mockobject> r;
+	chk r.value().value == 3;
+}
+
+TEST("a value in aw::result can modified via .value()")
+{
+	aw::result<mockobject> r;
+	r.value().value = 4;
+	chk r->value == 4;
+}
+
+TEST("a value in const aw::result can accessed via .value()")
+{
+	aw::result<mockobject> const r;
+	chk r.value().value == 3;
+}
+
+TEST(".value() for aw::result<void> is valid")
+{
+	aw::result<void> r;
+	r.value();
+}
+
+TEST(".value() for const aw::result<void> is valid")
+{
+	aw::result<void> const r;
+	r.value();
+}
+
+TEST(".value() for moving aw::result returns rvalue ref")
+{
+	int counter = 0;
+
+	aw::result<mockobject> r1 = &counter;
+	aw::result<mockobject> r2 = std::move(r1).value();
+
+	chk counter == 1;
+}
+
+TEST(".value() for rval const aw::result returns const rvalue ref")
+{
+	aw::result<mockobject> const r1;
+	chk std::is_same<mockobject const &&, decltype(std::move(r1).value())>::value;
+}
+
+TEST(".value() for rval aw::result rethrows")
 {
 	aw::result<mockobject> r = std::make_exception_ptr(1);
-	chk_exc(int, *std::move(r));
+	chk_exc(int, std::move(r).value());
 }
 
-TEST("operator * for rval aw::result<void> rethrows")
+TEST(".value() for rval aw::result<void> rethrows")
 {
 	aw::result<void> r = std::make_exception_ptr(1);
-	chk_exc(int, *std::move(r));
+	chk_exc(int, std::move(r).value());
 }
 
-TEST("operator * for const rval aw::result rethrows")
+TEST(".value() for const rval aw::result rethrows")
 {
 	aw::result<mockobject> const r = std::make_exception_ptr(1);
-	chk_exc(int, *std::move(r));
+	chk_exc(int, std::move(r).value());
 }
 
-TEST("operator * for const rval aw::result<void> rethrows")
+TEST(".value() for const rval aw::result<void> rethrows")
 {
 	aw::result<void> const r = std::make_exception_ptr(1);
-	chk_exc(int, *std::move(r));
+	chk_exc(int, std::move(r).value());
 }
 
 TEST("aw::result::has_value is true while holding a value")

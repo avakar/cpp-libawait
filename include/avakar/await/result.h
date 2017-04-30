@@ -73,6 +73,11 @@ struct result
 	std::add_rvalue_reference_t<T> operator*() &&;
 	std::add_rvalue_reference_t<T const> operator*() const &&;
 
+	std::add_lvalue_reference_t<T> value() &;
+	std::add_lvalue_reference_t<T const> value() const &;
+	std::add_rvalue_reference_t<T> value() && ;
+	std::add_rvalue_reference_t<T const> value() const &&;
+
 	explicit operator bool() const noexcept;
 	bool has_value() const noexcept;
 	bool has_error_code() const noexcept;
