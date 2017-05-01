@@ -43,6 +43,14 @@ struct length<list<Tn...>>
 {
 };
 
+constexpr size_t npos = -1;
+
+template <typename T>
+struct index_of<T, list<>>
+	: std::integral_constant<size_t, npos>
+{
+};
+
 template <typename T, typename... Tn>
 struct index_of<T, list<T, Tn...>>
 	: std::integral_constant<size_t, 0>
