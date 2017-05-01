@@ -414,3 +414,25 @@ TEST("aw::result<T>::convert_error works with exception_ptr")
 	chk aw::holds_alternative<std::exception_ptr>(r2);
 	chk_exc(int, r2.value());
 }
+
+TEST("aw::result<T> will convert throws during constructions")
+{
+	aw::result<mockobject> r1{ aw::in_place_type_t<mockobject>(), mockobject_throw, 0 };
+	chk aw::holds_alternative<std::exception_ptr>(r1);
+}
+
+TEST("aw::result<T> will convert throws into values on copy")
+{
+	aw::result<mockobject> r1{ aw::in_place_type_t<mockobject>(), mockobject_throw, 1 };
+	aw::result<mockobject> r2(r1);
+
+	chk aw::holds_alternative<std::exception_ptr>(r2);
+}
+
+TEST("aw::result<T> will convert throws into values on copy")
+{
+	aw::result<mockobject> r1{ aw::in_place_type_t<mockobject>(), mockobject_throw, 1 };
+	aw::result<basic_mockobject<long>> r2(r1);
+
+	chk aw::holds_alternative<std::exception_ptr>(r2);
+}

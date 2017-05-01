@@ -87,6 +87,30 @@ void variant_visit(size_t index, Visitor && visitor, Args &&... args)
 		::visit(std::forward<Visitor>(visitor), index, std::forward<Args>(args)...);
 }
 
+template <typename T, typename... Args>
+auto construct_member(void * storage, Args &&... args) noexcept
+	-> std::enable_if_t<std::is_nothrow_constructible<T, Args...>::value, bool>
+{
+	new(storage) T(std::forward<Args>(args)...);
+	return true;
+}
+
+template <typename T, typename... Args>
+auto construct_member(void * storage, Args &&... args) noexcept
+	-> std::enable_if_t<std::is_constructible<T, Args...>::value && !std::is_nothrow_constructible<T, Args...>::value, bool>
+{
+	try
+	{
+		new(storage) T(std::forward<Args>(args)...);
+		return true;
+	}
+	catch (...)
+	{
+		new(storage) std::exception_ptr(std::current_exception());
+		return false;
+	}
+}
+
 template <typename T, size_t I>
 struct variant_member
 {
@@ -94,26 +118,26 @@ struct variant_member
 	static constexpr size_t index = I;
 
 	template <typename... Args>
-	static void construct(void * storage, Args &&... args)
+	static bool construct(void * storage, Args &&... args) noexcept
 	{
-		new(storage) T(std::forward<Args>(args)...);
+		return construct_member<T>(storage, std::forward<Args>(args)...);
 	}
 
-	static void destruct(void * storage)
+	static void destruct(void * storage) noexcept
 	{
 		static_cast<T *>(storage)->~T();
 	}
 
 	template <typename U = T>
-	static void copy(void * dst, void const * src)
+	static bool copy(void * dst, void const * src) noexcept
 	{
-		new(dst) T(*static_cast<U const *>(src));
+		return construct_member<T>(dst, *static_cast<U const *>(src));
 	}
 
 	template <typename U = T>
-	static void move(void * dst, void * src)
+	static bool move(void * dst, void * src) noexcept
 	{
-		new(dst) T(std::move(*static_cast<U *>(src)));
+		return construct_member<T>(dst, std::move(*static_cast<U *>(src)));
 	}
 };
 
@@ -123,20 +147,23 @@ struct variant_member<void, I>
 	using type = void;
 	static constexpr size_t index = I;
 
-	static void construct(void * storage)
+	static bool construct(void * storage) noexcept
 	{
-}
+		return true;
+	}
 
-	static void destruct(void * storage)
+	static void destruct(void * storage) noexcept
 	{
 	}
 
-	static void copy(void * dst, void const * src)
+	static bool copy(void * dst, void const * src) noexcept
 	{
+		return true;
 	}
 
-	static void move(void * dst, void * src)
+	static bool move(void * dst, void * src) noexcept
 	{
+		return true;
 	}
 };
 
@@ -146,23 +173,25 @@ struct variant_member<T &, I>
 	using type = T &;
 	static constexpr size_t index = I;
 
-	static void construct(void * storage, T & arg)
+	static bool construct(void * storage, T & arg) noexcept
 	{
 		new(storage) T *(std::addressof(arg));
+		return true;
 	}
 
-	static void destruct(void * storage)
+	static void destruct(void * storage) noexcept
 	{
 	}
 
-	static void copy(void * dst, void const * src)
+	static void copy(void * dst, void const * src) noexcept
 	{
 		new(dst) T *(*static_cast<T**>(src));
+		return true;
 	}
 
-	static void move(void * dst, void * src)
+	static void move(void * dst, void * src) noexcept
 	{
-		copy(dst, src);
+		return copy(dst, src);
 	}
 };
 

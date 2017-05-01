@@ -60,7 +60,8 @@ template <typename U, typename... Args, typename>
 result<T>::result(in_place_type_t<U>, Args &&... args) noexcept
 	: index_(detail::result_index<U, T>::value)
 {
-	detail::variant_member<U>::construct(&storage_, std::forward<Args>(args)...);
+	if (!detail::variant_member<U>::construct(&storage_, std::forward<Args>(args)...))
+		index_ = detail::result_index<std::exception_ptr, T>::value;
 }
 
 template <typename T>
@@ -68,7 +69,8 @@ result<T>::result(result const & o) noexcept
 	: index_(o.index_)
 {
 	detail::variant_visit<_types>(index_, [this, &o](auto m) {
-		m.copy(&storage_, &o.storage_);
+		if (!m.copy(&storage_, &o.storage_))
+			index_ = detail::result_index<std::exception_ptr, T>::value;
 	});
 }
 
@@ -77,7 +79,8 @@ result<T>::result(result && o) noexcept
 	: index_(o.index_)
 {
 	detail::variant_visit<_types>(index_, [this, &o](auto m) {
-		m.move(&storage_, &o.storage_);
+		if (!m.move(&storage_, &o.storage_))
+			index_ = detail::result_index<std::exception_ptr, T>::value;
 	});
 }
 
@@ -90,7 +93,8 @@ result<T>::result(result<U> const & o) noexcept
 		using M = decltype(m);
 		using O = _meta::sub_t<typename result<U>::_types, M::index>;
 
-		m.template copy<O>(&storage_, &o.storage_);
+		if (!m.template copy<O>(&storage_, &o.storage_))
+			index_ = detail::result_index<std::exception_ptr, T>::value;
 	});
 }
 
@@ -103,7 +107,8 @@ result<T>::result(result<U> && o) noexcept
 		using M = decltype(m);
 		using O = _meta::sub_t<typename result<U>::_types, M::index>;
 
-		m.template move<O>(&storage_, &o.storage_);
+		if (!m.template move<O>(&storage_, &o.storage_))
+			index_ = detail::result_index<std::exception_ptr, T>::value;
 	});
 }
 
