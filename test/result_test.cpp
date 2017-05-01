@@ -443,3 +443,12 @@ TEST("aw::result can be constructred with in_place")
 	chk r.has_value();
 	chk r.get() == 1;
 }
+
+TEST("aw::result can be compared")
+{
+	aw::result<int> r = 1;
+	chk r == 1;
+	chk r != 0;
+	chk (1 == r);
+	chk (0 != r);
+}

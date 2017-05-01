@@ -218,7 +218,7 @@ auto result<T>::get()
 }
 
 template <>
-auto result<void>::get()
+inline auto result<void>::get()
 	-> typename std::add_rvalue_reference<void>::type
 {
 	this->rethrow();
@@ -329,25 +329,25 @@ std::add_rvalue_reference_t<U> get(result<T> && o) noexcept
 }
 
 template <>
-std::add_lvalue_reference_t<void const> get<void>(result<void> const & o) noexcept
+inline std::add_lvalue_reference_t<void const> get<void>(result<void> const & o) noexcept
 {
 	assert(holds_alternative<void>(o));
 }
 
 template <>
-std::add_rvalue_reference_t<void const> get<void>(result<void> const && o) noexcept
+inline std::add_rvalue_reference_t<void const> get<void>(result<void> const && o) noexcept
 {
 	assert(holds_alternative<void>(o));
 }
 
 template <>
-std::add_lvalue_reference_t<void> get<void>(result<void> & o) noexcept
+inline std::add_lvalue_reference_t<void> get<void>(result<void> & o) noexcept
 {
 	assert(holds_alternative<void>(o));
 }
 
 template <>
-std::add_rvalue_reference_t<void> get<void>(result<void> && o) noexcept
+inline std::add_rvalue_reference_t<void> get<void>(result<void> && o) noexcept
 {
 	assert(holds_alternative<void>(o));
 }
@@ -360,6 +360,35 @@ result<U> result<T>::convert_error()
 		using E = std::decay_t<decltype(err)>;
 		return result<U>(in_place_type_t<E>(), err);
 	});
+}
+
+template <typename T>
+bool result<T>::operator==(result const & rhs) const
+{
+	if (index_ != rhs.index_)
+		return false;
+
+	return detail::variant_visit<_types>(index_, [this, &rhs](auto m) {
+		return m.equal(&storage_, &rhs.storage_);
+	});
+}
+
+template <typename T>
+bool result<T>::operator!=(result const & rhs) const
+{
+	return !(*this == rhs);
+}
+
+template <typename T, typename U>
+bool operator==(U && lhs, result<T> const & rhs)
+{
+	return rhs == std::forward<U>(lhs);
+}
+
+template <typename T, typename U>
+bool operator!=(U && lhs, result<T> const & rhs)
+{
+	return !(std::forward<U>(lhs) == rhs);
 }
 
 } // namespace libawait

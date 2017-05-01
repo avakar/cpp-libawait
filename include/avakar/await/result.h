@@ -74,6 +74,9 @@ struct result
 	template <typename U>
 	result<U> convert_error();
 
+	bool operator==(result const & rhs) const;
+	bool operator!=(result const & rhs) const;
+
 private:
 	template <typename Visitor>
 	detail::visit_error_result_t<Visitor> visit_error(Visitor && vis) const;
@@ -93,6 +96,12 @@ private:
 
 	friend struct detail::result_storage;
 };
+
+template <typename T, typename U>
+bool operator==(U && lhs, result<T> const & rhs);
+
+template <typename T, typename U>
+bool operator!=(U && u, result<T> const & rhs);
 
 template <typename U, typename T>
 bool holds_alternative(result<T> const & o) noexcept;

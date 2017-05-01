@@ -65,25 +65,28 @@ struct visit_impl;
 template <typename... Tn, size_t... In, typename Visitor, typename... Args>
 struct visit_impl<_meta::list<Tn...>, std::index_sequence<In...>, Visitor, Args...>
 {
+	using return_type = std::common_type_t<
+		decltype(std::declval<Visitor>()(std::declval<variant_member<Tn, In>>(), std::declval<Args>()...))...>;
+
 	template <typename T, size_t I>
-	static void visit_one(Visitor && visitor, Args &&... args)
+	static return_type visit_one(Visitor && visitor, Args &&... args)
 	{
-		std::forward<Visitor>(visitor)(variant_member<T, I>(), std::forward<Args>(args)...);
+		return std::forward<Visitor>(visitor)(variant_member<T, I>(), std::forward<Args>(args)...);
 	}
 
-	static void visit(Visitor && visitor, size_t index, Args &&... args)
+	static return_type visit(Visitor && visitor, size_t index, Args &&... args)
 	{
-		using visit_fn = void(Visitor && visitor, Args &&... args);
+		using visit_fn = return_type(Visitor && visitor, Args &&... args);
 		static visit_fn * const fns[] = { &visit_one<Tn, In>... };
 
-		fns[index](std::forward<Visitor>(visitor), std::forward<Args>(args)...);
+		return fns[index](std::forward<Visitor>(visitor), std::forward<Args>(args)...);
 	}
 };
 
 template <typename L, typename Visitor, typename... Args>
-void variant_visit(size_t index, Visitor && visitor, Args &&... args)
+auto variant_visit(size_t index, Visitor && visitor, Args &&... args)
 {
-	visit_impl<L, std::make_index_sequence<_meta::length<L>::value>, Visitor, Args...>
+	return visit_impl<L, std::make_index_sequence<_meta::length<L>::value>, Visitor, Args...>
 		::visit(std::forward<Visitor>(visitor), index, std::forward<Args>(args)...);
 }
 
@@ -139,6 +142,11 @@ struct variant_member
 	{
 		return construct_member<T>(dst, std::move(*static_cast<U *>(src)));
 	}
+
+	static bool equal(void const * lhs, void const * rhs) noexcept
+	{
+		return *static_cast<T const *>(lhs) == *static_cast<T const *>(rhs);
+	}
 };
 
 template <size_t I>
@@ -162,6 +170,11 @@ struct variant_member<void, I>
 	}
 
 	static bool move(void * dst, void * src) noexcept
+	{
+		return true;
+	}
+
+	static bool equal(void const * lhs, void const * rhs) noexcept
 	{
 		return true;
 	}
@@ -192,6 +205,11 @@ struct variant_member<T &, I>
 	static bool move(void * dst, void * src) noexcept
 	{
 		return copy(dst, src);
+	}
+
+	static bool equal(void const * lhs, void const * rhs) noexcept
+	{
+		return **static_cast<T const **>(lhs) == **static_cast<T const **>(rhs);
 	}
 };
 
