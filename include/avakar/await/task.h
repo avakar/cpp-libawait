@@ -45,10 +45,15 @@ struct task
 	task(task const & o) = delete;
 	task(task && o);
 
+	task & operator=(task const & o) = delete;
+	task & operator=(task && o);
+
 	~task();
 
 	explicit operator bool() const;
+	bool empty() const;
 
+	void clear();
 	result<T> dismiss();
 
 private:

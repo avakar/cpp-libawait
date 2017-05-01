@@ -72,17 +72,44 @@ task<T>::task(task && o)
 }
 
 template <typename T>
+task<T> & task<T>::operator=(task && o)
+{
+	this->clear();
+
+	index_ = o.index_;
+	detail::variant_visit<_types>(index_, [this, &o](auto m) {
+		m.move(&storage_, &o.storage_);
+		m.destruct(&o.storage_);
+	});
+
+	o.index_ = _meta::index_of<nulltask_t, _types>::value;
+	detail::variant_member<nulltask_t>::construct(&o.storage_);
+	return *this;
+}
+
+template <typename T>
 task<T>::~task()
 {
-	if (*this)
-		this->dismiss();
-	assert(!*this);
+	this->clear();
 }
 
 template <typename T>
 task<T>::operator bool() const
 {
-	return index_ != _meta::index_of<nulltask_t, _types>::value;
+	return !this->empty();
+}
+
+template <typename T>
+bool task<T>::empty() const
+{
+	return index_ == _meta::index_of<nulltask_t, _types>::value;
+}
+
+template <typename T>
+void task<T>::clear()
+{
+	if (!this->empty())
+		this->dismiss();
 }
 
 template <typename T>

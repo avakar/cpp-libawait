@@ -176,3 +176,55 @@ TEST("aw::task moves a command")
 	chk !t;
 	chk u;
 }
+
+TEST("aw::task move assignes a value")
+{
+	aw::task<int> t(1);
+	chk t;
+
+	aw::task<int> u;
+	u = std::move(t);
+	chk !t;
+	chk u;
+
+	chk u.dismiss() == 1;
+}
+
+TEST("aw::task move assignes an error_code")
+{
+	aw::task<int> t = std::make_error_code(std::errc::invalid_argument);
+	chk t;
+
+	aw::task<int> u;
+	u = std::move(t);
+	chk !t;
+	chk u;
+
+	chk u.dismiss() == std::make_error_code(std::errc::invalid_argument);
+}
+
+TEST("aw::task move assignes an exception")
+{
+	aw::task<int> t = std::make_exception_ptr(1);
+	chk t;
+
+	aw::task<int> u;
+	u = std::move(t);
+	chk !t;
+	chk u;
+
+	chk_exc(int, u.dismiss().value());
+}
+
+TEST("aw::task move assignes a command")
+{
+	mock_command cmd(1);
+
+	aw::task<int> t{ aw::in_place_type_t<aw::command<int> *>(), &cmd };
+	chk t;
+
+	aw::task<int> u;
+	u = std::move(t);
+	chk !t;
+	chk u;
+}
