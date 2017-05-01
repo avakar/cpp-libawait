@@ -2,6 +2,7 @@
 #define AVAKAR_LIBAWAIT_META_H
 
 #include <stdlib.h>
+#include <type_traits>
 
 namespace avakar {
 namespace libawait {
@@ -27,6 +28,13 @@ struct concat;
 
 template <typename... Ln>
 using concat_t = typename concat<Ln...>::type;
+
+template <typename... L>
+struct overload_sandbox;
+
+template <typename T, typename L>
+using choose_overload_t = decltype(overload_sandbox<L>::f(std::declval<T>()));
+
 
 
 template <typename... Tn>
@@ -105,6 +113,20 @@ template <typename L1, typename L2, typename... Ln>
 struct concat<L1, L2, Ln...>
 {
 	using type = concat_t<concat_t<L1, L2>, Ln...>;
+};
+
+template <typename T0, typename... Tn>
+struct overload_sandbox<list<T0, Tn...>>
+	: overload_sandbox<list<Tn...>>
+{
+	using overload_sandbox<list<Tn...>>::f;
+	static T0 f(T0);
+};
+
+template <typename T0>
+struct overload_sandbox<list<T0>>
+{
+	static T0 f(T0);
 };
 
 }

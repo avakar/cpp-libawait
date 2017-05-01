@@ -1,44 +1,9 @@
+#include "meta.h"
 #include <utility>
 #include <assert.h>
 
 namespace avakar {
 namespace libawait {
-
-namespace detail {
-
-template <typename T0, typename... Tn>
-struct overload_sandbox
-	: overload_sandbox<Tn...>
-{
-	using overload_sandbox<Tn...>::f;
-	static T0 f(T0);
-};
-
-template <typename T0>
-struct overload_sandbox<T0>
-{
-	static T0 f(T0);
-};
-
-template <typename T, typename... Types>
-using choose_overload_t = decltype(overload_sandbox<Types...>::f(std::declval<T>()));
-
-template <typename U, typename T>
-struct choose_result_overload
-{
-	using type = choose_overload_t<U, T, std::error_code, std::exception_ptr>;
-};
-
-template <typename U>
-struct choose_result_overload<U, void>
-{
-	using type = choose_overload_t<U, std::error_code, std::exception_ptr>;
-};
-
-template <typename U, typename T>
-using choose_result_overload_t = typename choose_result_overload<U, T>::type;
-
-}
 
 template <typename T>
 result<T>::result() noexcept
@@ -50,7 +15,7 @@ template <typename T>
 template <typename U, typename>
 result<T>::result(U && u) noexcept
 	: result(
-		in_place_type_t<detail::choose_result_overload_t<U, T>>(),
+		in_place_type_t<_meta::choose_overload_t<U, _types>>(),
 		std::forward<U>(u))
 {
 }

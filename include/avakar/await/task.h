@@ -1,72 +1,64 @@
-#ifndef AWAIT_TASK_H
-#define AWAIT_TASK_H
+#ifndef AVAKAR_LIBAWAIT_TASK_H
+#define AVAKAR_LIBAWAIT_TASK_H
 
 #include "result.h"
-#include "../../../src/task_fwd.h"
-#include "../../../src/task_storage.h"
-#include "../../../src/then_traits.h"
+#include "../../../src/meta.h"
+#include "../../../src/variant_storage.h"
+#include <system_error>
 #include <exception>
-#include <stddef.h>
 
-namespace aw {
+namespace avakar {
+namespace libawait {
+
+template <typename T>
+struct task;
+
+struct scheduler;
+
+template <typename T>
+struct task_completion
+{
+	virtual void on_completion(scheduler & sch, task<T> && t) = 0;
+};
+
+template <typename T>
+struct command
+{
+	virtual task<T> start(scheduler & sch, task_completion<T> & sink) noexcept = 0;
+	virtual result<T> cancel(scheduler * sch) noexcept = 0;
+};
+
+struct nulltask_t {};
+constexpr nulltask_t nulltask{};
 
 template <typename T>
 struct task
 {
 	task();
-	task(task && o);
-	task & operator=(task && o);
+
+	template <typename U>
+	task(U && u);
+
+	template <typename U, typename... Args>
+	task(in_place_type_t<U>, Args &&... args);
+
 	~task();
 
-	task(std::nullptr_t);
-
-	task(std::exception_ptr e);
-
-	template <typename U>
-	task(result<U> && v);
-
-	template <typename U>
-	task(result<U> const & v);
-
-	bool empty() const;
 	explicit operator bool() const;
 
-	result<T> dismiss() noexcept;
-	result<T> dismiss(cancel_info ci) noexcept;
-	void clear();
-
-	template <typename F>
-	auto continue_with(F && f)
-		-> typename detail::continue_with_traits<T, F>::return_type;
-
-	template <typename F>
-	auto then(F && f)
-		-> typename detail::then_traits<T, F>::return_type;
-
-	task<void> ignore_result();
-
-	template <typename... P>
-	task<T> hold(P &&... p);
+	result<T> dismiss();
 
 private:
-	detail::task_kind m_kind;
-	typename detail::task_storage<T>::type m_storage;
+	using _types = _meta::list<nulltask_t, T, std::error_code, std::exception_ptr, command<T> *>;
+	using _implicit_types = _meta::list<nulltask_t, T, std::error_code, std::exception_ptr>;
 
-	friend detail::task_access;
+	size_t index_;
+	detail::variant_storage_t<_types> storage_;
 };
 
-template <typename Ctx, typename StartF, typename UpdateF>
-task<void> loop(Ctx c, StartF && start, UpdateF && update);
-
-task<void> postpone();
-
-task<void> operator|(task<void> && lhs, task<void> && rhs);
-task<void> & operator|=(task<void> & lhs, task<void> && rhs);
-
-} // namespace aw
+}
+}
 
 #include "../../../src/task_impl.h"
-#include "../../../src/then_impl.h"
-#include "../../../src/loop_impl.h"
 
-#endif // AWAIT_TASK_H
+#endif // AVAKAR_LIBAWAIT_TASK_H

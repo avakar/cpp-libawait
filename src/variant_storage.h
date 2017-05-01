@@ -147,6 +147,16 @@ struct variant_member
 	{
 		return *static_cast<T const *>(lhs) == *static_cast<T const *>(rhs);
 	}
+
+	static T & get(void * storage)
+	{
+		return *static_cast<T *>(storage);
+	}
+
+	static T const & get(void const * storage)
+	{
+		return *static_cast<T const *>(storage);
+	}
 };
 
 template <size_t I>

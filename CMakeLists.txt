@@ -9,10 +9,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(common_srcs
     include/avakar/await/monostate.h
     include/avakar/await/result.h
+    include/avakar/await/task.h
     src/meta.h
     src/result_impl.h
     src/result_traits.h
     src/result.cpp
+    src/task_impl.h
     src/variant_storage.h
     )
 
@@ -40,6 +42,7 @@ target_link_libraries(avakar_await avakar_singleton)
 
 add_executable(avakar_await_test
     test/result_test.cpp
+    test/task_test.cpp
     test/mockobject.h
     )
 target_link_libraries(avakar_await_test avakar_await mutest)

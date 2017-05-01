@@ -1,253 +1,131 @@
 #include <avakar/await/task.h>
-#include <avakar/await/run.h>
 #include <mutest/test.h>
+
+namespace aw = avakar::libawait;
 
 namespace {
 
-struct movable
+struct mock_command
+	: aw::command<int>
 {
-	movable(int v): v(v) {}
-	movable(movable && o) { std::swap(v, o.v); }
-	int v;
-};
+	mock_command(int val)
+		: value_(val), dismiss_count_(0)
+	{
+	}
 
-struct counting
-{
-	~counting() { --*c; }
-	explicit counting(int & c): c(&c) { ++c; }
-	counting(counting const & o): c(o.c) { ++*c; }
-	counting & operator=(counting const & o) { c = o.c; ++*c; return *this; }
-	int * c;
+	aw::task<int> start(aw::scheduler & sch, aw::task_completion<int> & sink) noexcept override
+	{
+		++dismiss_count_;
+		return value_;
+	}
+
+	aw::result<int> cancel(aw::scheduler * sch) noexcept override
+	{
+		++dismiss_count_;
+		return value_;
+	}
+
+	int value_;
+	int dismiss_count_;
 };
 
 }
 
-TEST("aw::task should support default construction")
+TEST("aw::task default-constructs into a value")
 {
 	aw::task<int> t;
-	chk t.empty();
+	aw::result<int> r = t.dismiss();
+	chk r == 0;
+}
+
+TEST("aw::task implicitly constructs into nulltask")
+{
+	aw::task<int> t = aw::nulltask;
 	chk !t;
 }
 
-TEST("aw::task should support construction from nullptr")
+TEST("aw::task implicitly constructs into a value")
 {
-	aw::task<int> t = nullptr;
-	chk t.empty();
+	aw::task<int> t = 1;
+	aw::result<int> r = t.dismiss();
+	chk r == 1;
+}
+
+TEST("aw::task implicitly constructs into an error code")
+{
+	aw::task<int> t = std::make_error_code(std::errc::invalid_argument);
+	aw::result<int> r = t.dismiss();
+	chk aw::holds_alternative<std::error_code>(r);
+	chk aw::get<std::error_code>(r) == std::errc::invalid_argument;
+}
+
+TEST("aw::task implicitly constructs into an exception")
+{
+	aw::task<int> t = std::make_exception_ptr(1);
+	aw::result<int> r = t.dismiss();
+	chk aw::holds_alternative<std::exception_ptr>(r);
+	chk_exc(int, r.value());
+}
+
+TEST("aw::task explicitly constructs into a nulltask")
+{
+	aw::task<int> t{ aw::in_place_type_t<aw::nulltask_t>() };
 	chk !t;
 }
 
-TEST("empty aw::task should support move construction")
+TEST("aw::task explicitly constructs into a command")
 {
-	aw::task<int> t;
-	chk t.empty();
+	mock_command cmd(1);
 
-	aw::task<int> t2 = std::move(t);
-	chk t2.empty();
-	chk t.empty();
-}
-
-TEST("empty aw::task should support move assignment")
-{
-	aw::task<int> t, t2;
-	chk t.empty();
-	chk t2.empty();
-
-	t2 = std::move(t);
-	chk t.empty();
-	chk t2.empty();
-}
-
-TEST("aw::task should support values")
-{
-	aw::task<int> t = aw::value(42);
-	chk !t.empty();
+	aw::task<int> t{ aw::in_place_type_t<aw::command<int> *>(), &cmd };
 	chk t;
-	chk aw::run(std::move(t)) == 42;
+
+	aw::result<int> r = t.dismiss();
+	chk !t;
+	chk cmd.dismiss_count_ == 1;
+	chk r == 1;
 }
 
-TEST("aw::task with a value should support move construction")
+TEST("aw::task explicitly constructs into a value")
 {
-	aw::task<int> t = aw::value(42);
-	chk !t.empty();
+	aw::task<int> t(aw::in_place_type_t<int>(), 2);
+	chk t;
 
-	aw::task<int> t2 = std::move(t);
-	chk t.empty();
-	chk !t2.empty();
-
-	chk aw::run(std::move(t2)) == 42;
+	aw::result<int> r = t.dismiss();
+	chk !t;
+	chk r == 2;
 }
 
-TEST("aw::task with a value should support move assignment")
+TEST("aw::task explicitly constructs into an error code")
 {
-	aw::task<int> t = aw::value(42);
-	chk !t.empty();
+	aw::task<int> t(aw::in_place_type_t<std::error_code>(), std::make_error_code(std::errc::invalid_argument));
+	chk t;
 
-	aw::task<int> t2;
-	chk t2.empty();
-
-	t2 = std::move(t);
-	chk t.empty();
-	chk !t2.empty();
-
-	chk aw::run(std::move(t2)) == 42;
+	aw::result<int> r = t.dismiss();
+	chk !t;
+	chk aw::holds_alternative<std::error_code>(r);
+	chk aw::get<std::error_code>(r) == std::errc::invalid_argument;
 }
 
-TEST("aw::task should support move-only values")
+TEST("aw::task explicitly constructs into an exception")
 {
-	aw::task<movable> t = aw::value(42);
-	chk !t.empty();
+	aw::task<int> t(aw::in_place_type_t<std::exception_ptr>(), std::make_exception_ptr(1));
+	chk t;
 
-	aw::task<movable> t2 = std::move(t);
-	chk t.empty();
-	chk !t2.empty();
-
-	aw::task<movable> t3;
-	chk t3.empty();
-
-	t3 = std::move(t2);
-	chk !t3.empty();
-	chk t.empty();
-	chk t2.empty();
-
-	chk aw::run(std::move(t3)).v == 42;
+	aw::result<int> r = t.dismiss();
+	chk !t;
+	chk aw::holds_alternative<std::exception_ptr>(r);
+	chk_exc(int, r.value());
 }
 
-TEST("aw::task should manage objects correctly")
+TEST("aw::task dismisses content during destruction")
 {
-	int counter = 0;
-	aw::task<counting> t = aw::value(counting(counter));
-	chk counter == 1;
-	chk !t.empty();
-
+	mock_command cmd(1);
+	
 	{
-		aw::task<counting> t2 = aw::value(counting(counter));
-		chk !t2.empty();
-		chk counter == 2;
+		aw::task<int> t(aw::in_place_type_t<aw::command<int> *>(), &cmd);
+		chk t;
 	}
 
-	chk counter == 1;
-	t.clear();
-
-	chk t.empty();
-	chk counter == 0;
-}
-
-TEST("aw::task should support exceptions")
-{
-	int counter = 0;
-
-	{
-		aw::task<int> t = std::make_exception_ptr(counting(counter));
-		chk !t.empty();
-
-		aw::task<int> t2 = std::move(t);
-		chk t.empty();
-		chk !t2.empty();
-
-		try
-		{
-			aw::run(std::move(t2));
-		}
-		catch (counting e)
-		{
-			chk e.c == &counter;
-		}
-	}
-
-	chk counter == 0;
-}
-
-TEST("aw::task<void> should support construction from nullptr")
-{
-	aw::task<void> t = nullptr;
-	chk t.empty();
-}
-
-TEST("aw::task<void> should support values")
-{
-	aw::task<void> t = aw::value();
-	chk !t.empty();
-
-	aw::task<void> t2 = std::move(t);
-	chk t.empty();
-	chk !t2.empty();
-
-	aw::task<void> t3;
-	chk t3.empty();
-
-	t3 = std::move(t2);
-	chk !t3.empty();
-	chk t2.empty();
-
-	aw::run(std::move(t3));
-}
-
-TEST("aw::task<void> should support clear()")
-{
-	aw::task<void> t = aw::value();
-	chk !t.empty();
-
-	t.clear();
-	chk t.empty();
-}
-
-TEST("aw::task<void> should support exceptions")
-{
-	int counter = 0;
-
-	{
-		aw::task<void> t = std::make_exception_ptr(counting(counter));
-		chk !t.empty();
-
-		aw::task<void> t2 = std::move(t);
-		chk t.empty();
-		chk !t2.empty();
-
-		try
-		{
-			aw::run(std::move(t2));
-		}
-		catch (counting e)
-		{
-			chk e.c == &counter;
-		}
-	}
-
-	chk counter == 0;
-}
-
-TEST("aw::postpone should complete into void value")
-{
-	aw::task<void> t = aw::postpone();
-	aw::run(std::move(t));
-}
-
-TEST("aw::value should complete synchronously")
-{
-	int completed = 0;
-
-	aw::task<void> t = aw::value();
-	t = t.then([&completed]() -> aw::task<void> {
-		++completed;
-		return aw::value();
-	});
-
-	chk completed == 1;
-	aw::run(std::move(t));
-	chk completed == 1;
-}
-
-TEST("aw::postpone should not complete synchronously")
-{
-	int completed = 0;
-
-	aw::task<void> t = aw::postpone();
-	t = t.then([&completed]() -> aw::task<void> {
-		++completed;
-		return aw::value();
-	});
-
-	chk completed == 0;
-	aw::run(std::move(t));
-	chk completed == 1;
+	chk cmd.dismiss_count_ == 1;
 }
