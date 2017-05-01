@@ -15,8 +15,7 @@ struct mock_command
 
 	aw::task<int> start(aw::scheduler & sch, aw::task_completion<int> & sink) noexcept override
 	{
-		++dismiss_count_;
-		return value_;
+		std::abort();
 	}
 
 	aw::result<int> cancel(aw::scheduler * sch) noexcept override
