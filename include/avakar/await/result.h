@@ -38,7 +38,7 @@ struct result
 	result(in_place_t, Args &&... args) noexcept;
 
 	template <typename U, typename... Args,
-		typename = std::enable_if_t<_meta::index_of<U, _types>::value != _meta::npos>>
+		typename = std::enable_if_t<_meta::index_of<U, detail::result_types<T>>::value != _meta::npos>>
 	result(in_place_type_t<U>, Args &&... args) noexcept;
 
 	result(result const & o) noexcept;

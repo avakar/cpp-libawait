@@ -137,6 +137,12 @@ struct overload_sandbox<list<T0>>
 	static T0 f(T0);
 };
 
+template <typename... Tn>
+struct overload_sandbox<list<void, Tn...>>
+	: overload_sandbox<list<Tn...>>
+{
+};
+
 }
 }
 }
