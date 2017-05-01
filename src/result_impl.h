@@ -56,6 +56,13 @@ result<T>::result(U && u) noexcept
 }
 
 template <typename T>
+template <typename... Args>
+result<T>::result(in_place_t, Args &&... args) noexcept
+	: result(in_place_type_t<T>(), std::forward<Args>(args)...)
+{
+}
+
+template <typename T>
 template <typename U, typename... Args, typename>
 result<T>::result(in_place_type_t<U>, Args &&... args) noexcept
 	: index_(detail::result_index<U, T>::value)

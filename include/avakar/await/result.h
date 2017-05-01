@@ -13,6 +13,12 @@ namespace libawait {
 
 namespace aw = ::avakar::libawait;
 
+struct in_place_t
+{
+};
+
+constexpr in_place_t in_place{};
+
 template <typename T>
 struct in_place_type_t
 {
@@ -26,6 +32,9 @@ struct result
 	template <typename U,
 		typename = std::enable_if_t<!detail::is_result<std::decay_t<U>>::value>>
 	result(U && u) noexcept;
+
+	template <typename... Args>
+	result(in_place_t, Args &&... args) noexcept;
 
 	template <typename U, typename... Args,
 		typename = std::enable_if_t<detail::result_index<U, T>::valid>>

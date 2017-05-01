@@ -436,3 +436,10 @@ TEST("aw::result<T> will convert throws into values on copy")
 
 	chk aw::holds_alternative<std::exception_ptr>(r2);
 }
+
+TEST("aw::result can be constructred with in_place")
+{
+	aw::result<int> r(aw::in_place, 1);
+	chk r.has_value();
+	chk r.get() == 1;
+}
