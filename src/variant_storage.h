@@ -183,13 +183,13 @@ struct variant_member<T &, I>
 	{
 	}
 
-	static void copy(void * dst, void const * src) noexcept
+	static bool copy(void * dst, void const * src) noexcept
 	{
 		new(dst) T *(*static_cast<T**>(src));
 		return true;
 	}
 
-	static void move(void * dst, void * src) noexcept
+	static bool move(void * dst, void * src) noexcept
 	{
 		return copy(dst, src);
 	}

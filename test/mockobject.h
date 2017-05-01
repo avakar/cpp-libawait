@@ -4,7 +4,7 @@
 #include <type_traits>
 
 struct mockobject_throw_t {};
-static const mockobject_throw_t mockobject_throw;
+static const mockobject_throw_t mockobject_throw{};
 
 template <typename T>
 struct basic_mockobject
