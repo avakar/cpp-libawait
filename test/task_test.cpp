@@ -128,3 +128,51 @@ TEST("aw::task dismisses content during destruction")
 
 	chk cmd.dismiss_count_ == 1;
 }
+
+TEST("aw::task moves a value")
+{
+	aw::task<int> t(1);
+	chk t;
+
+	aw::task<int> u = std::move(t);
+	chk !t;
+	chk u;
+
+	chk u.dismiss() == 1;
+}
+
+TEST("aw::task moves an error_code")
+{
+	aw::task<int> t = std::make_error_code(std::errc::invalid_argument);
+	chk t;
+
+	aw::task<int> u = std::move(t);
+	chk !t;
+	chk u;
+
+	chk u.dismiss() == std::make_error_code(std::errc::invalid_argument);
+}
+
+TEST("aw::task moves an exception")
+{
+	aw::task<int> t = std::make_exception_ptr(1);
+	chk t;
+
+	aw::task<int> u = std::move(t);
+	chk !t;
+	chk u;
+
+	chk_exc(int, u.dismiss().value());
+}
+
+TEST("aw::task moves a command")
+{
+	mock_command cmd(1);
+
+	aw::task<int> t{ aw::in_place_type_t<aw::command<int> *>(), &cmd };
+	chk t;
+
+	aw::task<int> u = std::move(t);
+	chk !t;
+	chk u;
+}

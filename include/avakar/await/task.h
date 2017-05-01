@@ -42,6 +42,9 @@ struct task
 	template <typename U, typename... Args>
 	task(in_place_type_t<U>, Args &&... args);
 
+	task(task const & o) = delete;
+	task(task && o);
+
 	~task();
 
 	explicit operator bool() const;

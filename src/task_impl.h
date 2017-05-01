@@ -59,6 +59,19 @@ task<T>::task(in_place_type_t<U>, Args &&... args)
 }
 
 template <typename T>
+task<T>::task(task && o)
+	: index_(o.index_)
+{
+	detail::variant_visit<_types>(index_, [this, &o](auto m) {
+		m.move(&storage_, &o.storage_);
+		m.destruct(&o.storage_);
+	});
+
+	o.index_ = _meta::index_of<nulltask_t, _types>::value;
+	detail::variant_member<nulltask_t>::construct(&o.storage_);
+}
+
+template <typename T>
 task<T>::~task()
 {
 	if (*this)
