@@ -6,19 +6,19 @@ namespace aw = avakar::libawait;
 namespace {
 
 struct mock_command
-	: aw::command<int>
+	: aw::detail::command<int>
 {
 	mock_command(int val)
 		: value_(val), dismiss_count_(0)
 	{
 	}
 
-	aw::task<int> start(aw::scheduler & sch, aw::task_completion<int> & sink) noexcept override
+	aw::task<int> start(aw::detail::scheduler & sch, aw::detail::task_completion<int> & sink) noexcept override
 	{
 		std::abort();
 	}
 
-	aw::result<int> cancel(aw::scheduler * sch) noexcept override
+	aw::result<int> cancel(aw::detail::scheduler * sch) noexcept override
 	{
 		++dismiss_count_;
 		return value_;
@@ -76,7 +76,7 @@ TEST("aw::task explicitly constructs into a command")
 {
 	mock_command cmd(1);
 
-	aw::task<int> t{ aw::in_place_type_t<aw::command<int> *>(), &cmd };
+	aw::task<int> t{ aw::in_place_type_t<aw::detail::command<int> *>(), &cmd };
 	chk t;
 
 	aw::result<int> r = t.dismiss();
@@ -122,7 +122,7 @@ TEST("aw::task dismisses content during destruction")
 	mock_command cmd(1);
 	
 	{
-		aw::task<int> t(aw::in_place_type_t<aw::command<int> *>(), &cmd);
+		aw::task<int> t(aw::in_place_type_t<aw::detail::command<int> *>(), &cmd);
 		chk t;
 	}
 
@@ -169,7 +169,7 @@ TEST("aw::task moves a command")
 {
 	mock_command cmd(1);
 
-	aw::task<int> t{ aw::in_place_type_t<aw::command<int> *>(), &cmd };
+	aw::task<int> t{ aw::in_place_type_t<aw::detail::command<int> *>(), &cmd };
 	chk t;
 
 	aw::task<int> u = std::move(t);
@@ -220,7 +220,7 @@ TEST("aw::task move assignes a command")
 {
 	mock_command cmd(1);
 
-	aw::task<int> t{ aw::in_place_type_t<aw::command<int> *>(), &cmd };
+	aw::task<int> t{ aw::in_place_type_t<aw::detail::command<int> *>(), &cmd };
 	chk t;
 
 	aw::task<int> u;

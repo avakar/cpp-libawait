@@ -1,11 +1,14 @@
-#ifndef AWAIT_DETAIL_COMMAND_INTF_H
-#define AWAIT_DETAIL_COMMAND_INTF_H
+#ifndef AVAKAR_LIBAWAIT_COMMAND_INTF_H
+#define AVAKAR_LIBAWAIT_COMMAND_INTF_H
 
 #include <avakar/await/result.h>
-#include "task_fwd.h"
-#include <avakar/await/cancel.h>
 
-namespace aw {
+namespace avakar {
+namespace libawait {
+
+template <typename T>
+struct task;
+
 namespace detail {
 
 struct scheduler;
@@ -19,13 +22,12 @@ struct task_completion
 template <typename T>
 struct command
 {
-	virtual ~command() {}
-	virtual result<T> dismiss(cancel_info ci) noexcept = 0;
 	virtual task<T> start(scheduler & sch, task_completion<T> & sink) noexcept = 0;
-	virtual result<T> cancel(scheduler & sch, cancel_info ci) noexcept = 0;
+	virtual result<T> cancel(scheduler * sch) noexcept = 0;
 };
 
 }
 }
+}
 
-#endif // AWAIT_DETAIL_COMMAND_INTF_H
+#endif // AVAKAR_LIBAWAIT_COMMAND_INTF_H
