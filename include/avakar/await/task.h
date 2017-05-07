@@ -3,7 +3,7 @@
 
 #include "result.h"
 #include "../../../src/command_intf.h"
-#include "../../../src/meta.h"
+#include <avakar/meta.h>
 #include "../../../src/variant_storage.h"
 #include <system_error>
 #include <exception>
@@ -40,8 +40,8 @@ struct task
 	result<T> dismiss();
 
 private:
-	using _types = _meta::list<nulltask_t, T, std::error_code, std::exception_ptr, detail::command<T> *>;
-	using _implicit_types = _meta::list<nulltask_t, T, std::error_code, std::exception_ptr>;
+	using _types = meta::list<nulltask_t, T, std::error_code, std::exception_ptr, detail::command<T> *>;
+	using _implicit_types = meta::list<nulltask_t, T, std::error_code, std::exception_ptr>;
 
 	size_t index_;
 	detail::variant_storage_t<_types> storage_;

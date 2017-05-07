@@ -1,4 +1,4 @@
-#include "meta.h"
+#include <avakar/meta.h>
 #include <utility>
 
 namespace avakar {
@@ -46,14 +46,14 @@ task<T>::task()
 template <typename T>
 template <typename U>
 task<T>::task(U && u)
-	: task(in_place_type_t<_meta::choose_overload_t<U, _implicit_types>>(), std::forward<U>(u))
+	: task(in_place_type_t<meta::choose_overload_t<U, _implicit_types>>(), std::forward<U>(u))
 {
 }
 
 template <typename T>
 template <typename U, typename... Args>
 task<T>::task(in_place_type_t<U>, Args &&... args)
-	: index_(_meta::index_of<U, _types>::value)
+	: index_(meta::index_of<U, _types>::value)
 {
 	detail::variant_member<U>::construct(&storage_, std::forward<Args>(args)...);
 }
@@ -67,7 +67,7 @@ task<T>::task(task && o)
 		m.destruct(&o.storage_);
 	});
 
-	o.index_ = _meta::index_of<nulltask_t, _types>::value;
+	o.index_ = meta::index_of<nulltask_t, _types>::value;
 	detail::variant_member<nulltask_t>::construct(&o.storage_);
 }
 
@@ -82,7 +82,7 @@ task<T> & task<T>::operator=(task && o)
 		m.destruct(&o.storage_);
 	});
 
-	o.index_ = _meta::index_of<nulltask_t, _types>::value;
+	o.index_ = meta::index_of<nulltask_t, _types>::value;
 	detail::variant_member<nulltask_t>::construct(&o.storage_);
 	return *this;
 }
@@ -102,7 +102,7 @@ task<T>::operator bool() const
 template <typename T>
 bool task<T>::empty() const
 {
-	return index_ == _meta::index_of<nulltask_t, _types>::value;
+	return index_ == meta::index_of<nulltask_t, _types>::value;
 }
 
 template <typename T>
@@ -116,7 +116,7 @@ template <typename T>
 result<T> task<T>::dismiss()
 {
 	result<T> r = detail::variant_visit<_types>(index_, detail::task_dismisser<T>(), &storage_);
-	index_ = _meta::index_of<nulltask_t, _types>::value;
+	index_ = meta::index_of<nulltask_t, _types>::value;
 	return r;
 }
 

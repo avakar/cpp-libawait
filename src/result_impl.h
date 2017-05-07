@@ -1,4 +1,4 @@
-#include "meta.h"
+#include <avakar/meta.h>
 #include <utility>
 #include <assert.h>
 
@@ -15,7 +15,7 @@ template <typename T>
 template <typename U, typename>
 result<T>::result(U && u) noexcept
 	: result(
-		in_place_type_t<_meta::choose_overload_t<U, _types>>(),
+		in_place_type_t<meta::choose_overload_t<U, _types>>(),
 		std::forward<U>(u))
 {
 }
@@ -30,10 +30,10 @@ result<T>::result(in_place_t, Args &&... args) noexcept
 template <typename T>
 template <typename U, typename... Args, typename>
 result<T>::result(in_place_type_t<U>, Args &&... args) noexcept
-	: index_(_meta::index_of<U, _types>::value)
+	: index_(meta::index_of<U, _types>::value)
 {
 	if (!detail::variant_member<U>::construct(&storage_, std::forward<Args>(args)...))
-		index_ = _meta::index_of<std::exception_ptr, _types>::value;
+		index_ = meta::index_of<std::exception_ptr, _types>::value;
 }
 
 template <typename T>
@@ -42,7 +42,7 @@ result<T>::result(result const & o) noexcept
 {
 	detail::variant_visit<_types>(index_, [this, &o](auto m) {
 		if (!m.copy(&storage_, &o.storage_))
-			index_ = _meta::index_of<std::exception_ptr, _types>::value;
+			index_ = meta::index_of<std::exception_ptr, _types>::value;
 	});
 }
 
@@ -52,7 +52,7 @@ result<T>::result(result && o) noexcept
 {
 	detail::variant_visit<_types>(index_, [this, &o](auto m) {
 		if (!m.move(&storage_, &o.storage_))
-			index_ = _meta::index_of<std::exception_ptr, _types>::value;
+			index_ = meta::index_of<std::exception_ptr, _types>::value;
 	});
 }
 
@@ -63,10 +63,10 @@ result<T>::result(result<U> const & o) noexcept
 {
 	detail::variant_visit<_types>(index_, [this, &o](auto m) {
 		using M = decltype(m);
-		using O = _meta::sub_t<typename result<U>::_types, M::index>;
+		using O = meta::sub_t<typename result<U>::_types, M::index>;
 
 		if (!m.template copy<O>(&storage_, &o.storage_))
-			index_ = _meta::index_of<std::exception_ptr, _types>::value;
+			index_ = meta::index_of<std::exception_ptr, _types>::value;
 	});
 }
 
@@ -77,10 +77,10 @@ result<T>::result(result<U> && o) noexcept
 {
 	detail::variant_visit<_types>(index_, [this, &o](auto m) {
 		using M = decltype(m);
-		using O = _meta::sub_t<typename result<U>::_types, M::index>;
+		using O = meta::sub_t<typename result<U>::_types, M::index>;
 
 		if (!m.template move<O>(&storage_, &o.storage_))
-			index_ = _meta::index_of<std::exception_ptr, _types>::value;
+			index_ = meta::index_of<std::exception_ptr, _types>::value;
 	});
 }
 
@@ -238,7 +238,7 @@ void result<T>::rethrow() const
 template <typename U, typename T>
 bool holds_alternative(result<T> const & o) noexcept
 {
-	return detail::result_storage::index(o) == _meta::index_of<U, detail::result_types<T>>::value;
+	return detail::result_storage::index(o) == meta::index_of<U, detail::result_types<T>>::value;
 }
 
 template <typename U, typename T>

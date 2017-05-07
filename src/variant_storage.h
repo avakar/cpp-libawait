@@ -1,7 +1,7 @@
 #ifndef AVAKAR_LIBAWAIT_VARIANT_STORAGE_H
 #define AVAKAR_LIBAWAIT_VARIANT_STORAGE_H
 
-#include "../../../src/meta.h"
+#include <avakar/meta.h>
 #include <type_traits>
 #include <utility>
 
@@ -13,7 +13,7 @@ template <typename... Types>
 struct variant_storage_impl;
 
 template <typename... Types>
-struct variant_storage_impl<_meta::list<Types...>>
+struct variant_storage_impl<meta::list<Types...>>
 {
 	using type = std::aligned_union_t<0, Types...>;
 };
@@ -37,20 +37,20 @@ template <typename L>
 struct variant_storage_type_filter;
 
 template <>
-struct variant_storage_type_filter<_meta::list<>>
+struct variant_storage_type_filter<meta::list<>>
 {
-	using type = _meta::list<>;
+	using type = meta::list<>;
 };
 
 template <typename T0, typename... Tn>
-struct variant_storage_type_filter<_meta::list<T0, Tn...>>
+struct variant_storage_type_filter<meta::list<T0, Tn...>>
 {
-	using _filtered_tail = typename variant_storage_type_filter<_meta::list<Tn...>>::type;
+	using _filtered_tail = typename variant_storage_type_filter<meta::list<Tn...>>::type;
 
 	using type = std::conditional_t<
 		std::is_void<T0>::value,
 		_filtered_tail,
-		_meta::concat_t<variant_storage_member_t<T0>, _filtered_tail>>;
+		meta::concat_t<variant_storage_member_t<T0>, _filtered_tail>>;
 };
 
 template <typename L>
@@ -63,7 +63,7 @@ template <typename L, typename I, typename Visitor, typename... Args>
 struct visit_impl;
 
 template <typename... Tn, size_t... In, typename Visitor, typename... Args>
-struct visit_impl<_meta::list<Tn...>, std::index_sequence<In...>, Visitor, Args...>
+struct visit_impl<meta::list<Tn...>, std::index_sequence<In...>, Visitor, Args...>
 {
 	using return_type = std::common_type_t<
 		decltype(std::declval<Visitor>()(std::declval<variant_member<Tn, In>>(), std::declval<Args>()...))...>;
@@ -86,7 +86,7 @@ struct visit_impl<_meta::list<Tn...>, std::index_sequence<In...>, Visitor, Args.
 template <typename L, typename Visitor, typename... Args>
 auto variant_visit(size_t index, Visitor && visitor, Args &&... args)
 {
-	return visit_impl<L, std::make_index_sequence<_meta::length<L>::value>, Visitor, Args...>
+	return visit_impl<L, std::make_index_sequence<meta::length<L>::value>, Visitor, Args...>
 		::visit(std::forward<Visitor>(visitor), index, std::forward<Args>(args)...);
 }
 

@@ -1,6 +1,7 @@
 #ifndef AVAKAR_AWAIT_RESULT_TRAITS_H
 #define AVAKAR_AWAIT_RESULT_TRAITS_H
 
+#include <avakar/meta.h>
 #include <type_traits>
 #include <system_error>
 #include <exception>
@@ -47,7 +48,7 @@ struct is_result<result<T>>
 };
 
 template <typename T>
-using result_types = _meta::list<T, std::error_code, std::exception_ptr>;
+using result_types = meta::list<T, std::error_code, std::exception_ptr>;
 
 template <typename Visitor>
 using visit_error_result_t = std::common_type_t<

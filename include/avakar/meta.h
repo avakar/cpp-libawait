@@ -1,12 +1,11 @@
-#ifndef AVAKAR_LIBAWAIT_META_H
-#define AVAKAR_LIBAWAIT_META_H
+#ifndef AVAKAR_META_H
+#define AVAKAR_META_H
 
 #include <stdlib.h>
 #include <type_traits>
 
 namespace avakar {
-namespace libawait {
-namespace _meta {
+namespace meta {
 
 template <typename... Tn>
 struct list;
@@ -145,6 +144,5 @@ struct overload_sandbox<list<void, Tn...>>
 
 }
 }
-}
 
-#endif // AVAKAR_LIBAWAIT_META_H
+#endif // AVAKAR_META_H

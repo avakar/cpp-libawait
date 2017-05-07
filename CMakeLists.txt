@@ -10,8 +10,8 @@ set(common_srcs
     include/avakar/await/monostate.h
     include/avakar/await/result.h
     include/avakar/await/task.h
+    include/avakar/meta.h
     src/command_intf.h
-    src/meta.h
     src/result_impl.h
     src/result_traits.h
     src/result.cpp

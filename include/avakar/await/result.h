@@ -2,7 +2,7 @@
 #define AVAKAR_AWAIT_RESULT_H
 
 #include "monostate.h"
-#include "../../../src/meta.h"
+#include <avakar/meta.h>
 #include "../../../src/result_traits.h"
 #include "../../../src/variant_storage.h"
 #include <type_traits>
@@ -38,7 +38,7 @@ struct result
 	result(in_place_t, Args &&... args) noexcept;
 
 	template <typename U, typename... Args,
-		typename = std::enable_if_t<_meta::index_of<U, detail::result_types<T>>::value != _meta::npos>>
+		typename = std::enable_if_t<meta::index_of<U, detail::result_types<T>>::value != meta::npos>>
 	result(in_place_type_t<U>, Args &&... args) noexcept;
 
 	result(result const & o) noexcept;
@@ -87,7 +87,7 @@ private:
 	using _types = detail::result_types<T>;
 
 	template <typename U>
-	using storage_index = _meta::index_of<U, _types>;
+	using storage_index = meta::index_of<U, _types>;
 
 	std::size_t index_;
 	detail::variant_storage_t<_types> storage_;
