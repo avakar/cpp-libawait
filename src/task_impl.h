@@ -31,6 +31,13 @@ struct task_dismisser
 		new(storage) nulltask_t;
 		return r;
 	}
+
+	result<T> operator()(meta::item<void> m, void * storage)
+	{
+		result<T> r{ in_place_type_t<void>() };
+		new(storage) nulltask_t;
+		return r;
+	}
 };
 
 }
@@ -113,6 +120,8 @@ void task<T>::clear()
 template <typename T>
 result<T> task<T>::dismiss()
 {
+	assert(!this->empty());
+
 	result<T> r = meta::visit<_types>(index_, detail::task_dismisser<T>(), &storage_);
 	index_ = meta::index_of<nulltask_t, _types>::value;
 	return r;

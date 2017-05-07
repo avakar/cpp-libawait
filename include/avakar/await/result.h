@@ -31,23 +31,31 @@ struct result
 	result() noexcept;
 
 	template <typename U,
-		typename = std::enable_if_t<!detail::is_result<std::decay_t<U>>::value>>
+		typename = std::enable_if_t<
+			!detail::is_result<std::decay_t<U>>::value
+			&& std::is_constructible<meta::choose_overload_t<U, _types>, U>::value
+		>>
 	result(U && u) noexcept;
 
 	template <typename... Args>
 	result(in_place_t, Args &&... args) noexcept;
 
 	template <typename U, typename... Args,
-		typename = std::enable_if_t<meta::index_of<U, detail::result_types<T>>::value != meta::npos>>
+		typename = std::enable_if_t<
+			meta::index_of<U, detail::result_types<T>>::value != meta::npos
+			&& (std::is_constructible<U, Args...>::value || (std::is_void<U>::value && sizeof...(Args) == 0))
+		>>
 	result(in_place_type_t<U>, Args &&... args) noexcept;
 
 	result(result const & o) noexcept;
 	result(result && o) noexcept;
 
-	template <typename U>
+	template <typename U,
+		typename = std::enable_if_t<std::is_constructible<T, U &>::value>>
 	result(result<U> const & o) noexcept;
 
-	template <typename U>
+	template <typename U,
+		typename = std::enable_if_t<std::is_constructible<T, U>::value>>
 	result(result<U> && o) noexcept;
 
 	result & operator=(result const & o);

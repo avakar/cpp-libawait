@@ -57,7 +57,7 @@ result<T>::result(result && o) noexcept
 }
 
 template <typename T>
-template <typename U>
+template <typename U, typename>
 result<T>::result(result<U> const & o) noexcept
 	: index_(o.index_)
 {
@@ -71,7 +71,7 @@ result<T>::result(result<U> const & o) noexcept
 }
 
 template <typename T>
-template <typename U>
+template <typename U, typename>
 result<T>::result(result<U> && o) noexcept
 	: index_(o.index_)
 {

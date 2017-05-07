@@ -1,6 +1,8 @@
 #include <avakar/await/task.h>
 #include <mutest/test.h>
 
+#include "mockobject.h"
+
 namespace aw = avakar::libawait;
 
 namespace {
@@ -33,8 +35,19 @@ struct mock_command
 TEST("aw::task default-constructs into a value")
 {
 	aw::task<int> t;
+	chk !t.empty();
+
 	aw::result<int> r = t.dismiss();
 	chk r == 0;
+}
+
+TEST("aw::task<void> default-constructs into a value")
+{
+	aw::task<void> t;
+	chk !t.empty();
+
+	aw::result<void> r = t.dismiss();
+	chk r;
 }
 
 TEST("aw::task implicitly constructs into nulltask")
@@ -95,6 +108,16 @@ TEST("aw::task explicitly constructs into a value")
 	chk r == 2;
 }
 
+TEST("aw::task<void> explicitly constructs into a value")
+{
+	aw::task<void> t{ aw::in_place_type_t<void>() };
+	chk t;
+
+	aw::result<void> r = t.dismiss();
+	chk !t;
+	chk r;
+}
+
 TEST("aw::task explicitly constructs into an error code")
 {
 	aw::task<int> t(aw::in_place_type_t<std::error_code>(), std::make_error_code(std::errc::invalid_argument));
@@ -129,16 +152,34 @@ TEST("aw::task dismisses content during destruction")
 	chk cmd.dismiss_count_ == 1;
 }
 
+TEST("aw::task destroys value during destruction")
+{
+	int counter = 0;
+
+	{
+		aw::task<mockobject> t = &counter;
+		chk t;
+		chk counter == 1;
+	}
+
+	chk counter == 0;
+}
+
 TEST("aw::task moves a value")
 {
-	aw::task<int> t(1);
-	chk t;
+	int counter = 0;
 
-	aw::task<int> u = std::move(t);
+	aw::task<mockobject> t = &counter;
+	chk t;
+	chk counter == 1;
+
+	aw::task<mockobject> u = std::move(t);
 	chk !t;
 	chk u;
+	chk counter == 1;
 
-	chk u.dismiss() == 1;
+	chk u.dismiss()->value == 3;
+	chk counter == 0;
 }
 
 TEST("aw::task moves an error_code")
