@@ -9,28 +9,26 @@ namespace detail {
 template <typename T>
 struct task_dismisser
 {
-	template <size_t I>
-	result<T> operator()(detail::variant_member<nulltask_t, I>, void *)
+	result<T> operator()(meta::item<nulltask_t>, void *)
 	{
 		std::abort();
 	}
 
-	template <size_t I>
-	result<T> operator()(detail::variant_member<command<T> *, I> m, void * storage)
+	result<T> operator()(meta::item<command<T> *> m, void * storage)
 	{
-		result<T> r = m.get(storage)->cancel(nullptr);
-		m.destruct(storage);
-		detail::variant_member<nulltask_t>::construct(storage);
+		result<T> r = get(m, storage)->cancel(nullptr);
+		destroy_member(m, storage);
+		new(storage) nulltask_t;
 		return r;
 
 	}
 
-	template <typename U, size_t I>
-	result<T> operator()(detail::variant_member<U, I> m, void * storage)
+	template <typename U>
+	result<T> operator()(meta::item<U> m, void * storage)
 	{
-		result<T> r{ in_place_type_t<U>(), std::move(m.get(storage)) };
-		m.destruct(storage);
-		detail::variant_member<nulltask_t>::construct(storage);
+		result<T> r{ in_place_type_t<U>(), std::move(get(m, storage)) };
+		detail::destroy_member(m, storage);
+		new(storage) nulltask_t;
 		return r;
 	}
 };
@@ -55,20 +53,20 @@ template <typename U, typename... Args>
 task<T>::task(in_place_type_t<U>, Args &&... args)
 	: index_(meta::index_of<U, _types>::value)
 {
-	detail::variant_member<U>::construct(&storage_, std::forward<Args>(args)...);
+	detail::construct_member(meta::item<U>(), &storage_, std::forward<Args>(args)...);
 }
 
 template <typename T>
 task<T>::task(task && o)
 	: index_(o.index_)
 {
-	detail::variant_visit<_types>(index_, [this, &o](auto m) {
-		m.move(&storage_, &o.storage_);
-		m.destruct(&o.storage_);
+	meta::visit<_types>(index_, [this, &o](auto m) {
+		detail::move_construct_member(m, &storage_, m, &o.storage_);
+		detail::destroy_member(m, &o.storage_);
 	});
 
 	o.index_ = meta::index_of<nulltask_t, _types>::value;
-	detail::variant_member<nulltask_t>::construct(&o.storage_);
+	new(&o.storage_) nulltask_t;
 }
 
 template <typename T>
@@ -77,13 +75,13 @@ task<T> & task<T>::operator=(task && o)
 	this->clear();
 
 	index_ = o.index_;
-	detail::variant_visit<_types>(index_, [this, &o](auto m) {
-		m.move(&storage_, &o.storage_);
-		m.destruct(&o.storage_);
+	meta::visit<_types>(index_, [this, &o](auto m) {
+		detail::move_construct_member(m, &storage_, m, &o.storage_);
+		detail::destroy_member(m, &o.storage_);
 	});
 
 	o.index_ = meta::index_of<nulltask_t, _types>::value;
-	detail::variant_member<nulltask_t>::construct(&o.storage_);
+	new(&o.storage_) nulltask_t;
 	return *this;
 }
 
@@ -115,7 +113,7 @@ void task<T>::clear()
 template <typename T>
 result<T> task<T>::dismiss()
 {
-	result<T> r = detail::variant_visit<_types>(index_, detail::task_dismisser<T>(), &storage_);
+	result<T> r = meta::visit<_types>(index_, detail::task_dismisser<T>(), &storage_);
 	index_ = meta::index_of<nulltask_t, _types>::value;
 	return r;
 }

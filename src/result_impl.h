@@ -32,7 +32,7 @@ template <typename U, typename... Args, typename>
 result<T>::result(in_place_type_t<U>, Args &&... args) noexcept
 	: index_(meta::index_of<U, _types>::value)
 {
-	if (!detail::variant_member<U>::construct(&storage_, std::forward<Args>(args)...))
+	if (!detail::construct_member(meta::item<U>(), &storage_, std::forward<Args>(args)...))
 		index_ = meta::index_of<std::exception_ptr, _types>::value;
 }
 
@@ -40,8 +40,8 @@ template <typename T>
 result<T>::result(result const & o) noexcept
 	: index_(o.index_)
 {
-	detail::variant_visit<_types>(index_, [this, &o](auto m) {
-		if (!m.copy(&storage_, &o.storage_))
+	meta::visit<_types>(index_, [this, &o](auto m) {
+		if (!detail::copy_construct_member(m, &storage_, m, &o.storage_))
 			index_ = meta::index_of<std::exception_ptr, _types>::value;
 	});
 }
@@ -50,8 +50,8 @@ template <typename T>
 result<T>::result(result && o) noexcept
 	: index_(o.index_)
 {
-	detail::variant_visit<_types>(index_, [this, &o](auto m) {
-		if (!m.move(&storage_, &o.storage_))
+	meta::visit<_types>(index_, [this, &o](auto m) {
+		if (!detail::move_construct_member(m, &storage_, m, &o.storage_))
 			index_ = meta::index_of<std::exception_ptr, _types>::value;
 	});
 }
@@ -61,11 +61,11 @@ template <typename U>
 result<T>::result(result<U> const & o) noexcept
 	: index_(o.index_)
 {
-	detail::variant_visit<_types>(index_, [this, &o](auto m) {
+	meta::visit<_types>(index_, [this, &o](auto m) {
 		using M = decltype(m);
 		using O = meta::sub_t<typename result<U>::_types, M::index>;
 
-		if (!m.template copy<O>(&storage_, &o.storage_))
+		if (!detail::copy_construct_member(m, &storage_, meta::item<O>(), &o.storage_))
 			index_ = meta::index_of<std::exception_ptr, _types>::value;
 	});
 }
@@ -75,11 +75,11 @@ template <typename U>
 result<T>::result(result<U> && o) noexcept
 	: index_(o.index_)
 {
-	detail::variant_visit<_types>(index_, [this, &o](auto m) {
+	meta::visit<_types>(index_, [this, &o](auto m) {
 		using M = decltype(m);
 		using O = meta::sub_t<typename result<U>::_types, M::index>;
 
-		if (!m.template move<O>(&storage_, &o.storage_))
+		if (!detail::move_construct_member(m, &storage_, meta::item<O>(), &o.storage_))
 			index_ = meta::index_of<std::exception_ptr, _types>::value;
 	});
 }
@@ -87,8 +87,8 @@ result<T>::result(result<U> && o) noexcept
 template <typename T>
 result<T>::~result()
 {
-	detail::variant_visit<_types>(index_, [this](auto m) {
-		m.destruct(&storage_);
+	meta::visit<_types>(index_, [this](auto m) {
+		detail::destroy_member(m, &storage_);
 	});
 }
 
@@ -333,8 +333,8 @@ bool result<T>::operator==(result const & rhs) const
 	if (index_ != rhs.index_)
 		return false;
 
-	return detail::variant_visit<_types>(index_, [this, &rhs](auto m) {
-		return m.equal(&storage_, &rhs.storage_);
+	return meta::visit<_types>(index_, [this, &rhs](auto m) -> bool {
+		return detail::equal_member(m, &storage_, m, &rhs.storage_);
 	});
 }
 

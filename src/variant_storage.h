@@ -56,172 +56,127 @@ struct variant_storage_type_filter<meta::list<T0, Tn...>>
 template <typename L>
 using variant_storage_t = typename variant_storage_impl<typename variant_storage_type_filter<L>::type>::type;
 
-template <typename T, size_t I = 0>
-struct variant_member;
-
-template <typename L, typename I, typename Visitor, typename... Args>
-struct visit_impl;
-
-template <typename... Tn, size_t... In, typename Visitor, typename... Args>
-struct visit_impl<meta::list<Tn...>, std::index_sequence<In...>, Visitor, Args...>
+template <typename... Args>
+auto construct_member(meta::item<void>, void * st, Args &&... args) noexcept
 {
-	using return_type = std::common_type_t<
-		decltype(std::declval<Visitor>()(std::declval<variant_member<Tn, In>>(), std::declval<Args>()...))...>;
-
-	template <typename T, size_t I>
-	static return_type visit_one(Visitor && visitor, Args &&... args)
-	{
-		return std::forward<Visitor>(visitor)(variant_member<T, I>(), std::forward<Args>(args)...);
-	}
-
-	static return_type visit(Visitor && visitor, size_t index, Args &&... args)
-	{
-		using visit_fn = return_type(Visitor && visitor, Args &&... args);
-		static visit_fn * const fns[] = { &visit_one<Tn, In>... };
-
-		return fns[index](std::forward<Visitor>(visitor), std::forward<Args>(args)...);
-	}
-};
-
-template <typename L, typename Visitor, typename... Args>
-auto variant_visit(size_t index, Visitor && visitor, Args &&... args)
-{
-	return visit_impl<L, std::make_index_sequence<meta::length<L>::value>, Visitor, Args...>
-		::visit(std::forward<Visitor>(visitor), index, std::forward<Args>(args)...);
-}
-
-template <typename T, typename... Args>
-auto construct_member(void * storage, Args &&... args) noexcept
-	-> std::enable_if_t<std::is_nothrow_constructible<T, Args...>::value, bool>
-{
-	new(storage) T(std::forward<Args>(args)...);
 	return true;
 }
 
 template <typename T, typename... Args>
-auto construct_member(void * storage, Args &&... args) noexcept
+auto construct_member(meta::item<T>, void * st, Args &&... args) noexcept
+	-> std::enable_if_t<std::is_nothrow_constructible<T, Args...>::value, bool>
+{
+	new(st) T(std::forward<Args>(args)...);
+	return true;
+}
+
+template <typename T, typename... Args>
+auto construct_member(meta::item<T>, void * st, Args &&... args) noexcept
 	-> std::enable_if_t<std::is_constructible<T, Args...>::value && !std::is_nothrow_constructible<T, Args...>::value, bool>
 {
 	try
 	{
-		new(storage) T(std::forward<Args>(args)...);
+		new(st) T(std::forward<Args>(args)...);
 		return true;
 	}
 	catch (...)
 	{
-		new(storage) std::exception_ptr(std::current_exception());
+		new(st) std::exception_ptr(std::current_exception());
 		return false;
 	}
 }
 
-template <typename T, size_t I>
-struct variant_member
+template <typename T>
+void destroy_member(meta::item<T>, void * st) noexcept
 {
-	using type = T;
-	static constexpr size_t index = I;
+	static_cast<T *>(st)->~T();
+}
 
-	template <typename... Args>
-	static bool construct(void * storage, Args &&... args) noexcept
-	{
-		return construct_member<T>(storage, std::forward<Args>(args)...);
-	}
-
-	static void destruct(void * storage) noexcept
-	{
-		static_cast<T *>(storage)->~T();
-	}
-
-	template <typename U = T>
-	static bool copy(void * dst, void const * src) noexcept
-	{
-		return construct_member<T>(dst, *static_cast<U const *>(src));
-	}
-
-	template <typename U = T>
-	static bool move(void * dst, void * src) noexcept
-	{
-		return construct_member<T>(dst, std::move(*static_cast<U *>(src)));
-	}
-
-	static bool equal(void const * lhs, void const * rhs) noexcept
-	{
-		return *static_cast<T const *>(lhs) == *static_cast<T const *>(rhs);
-	}
-
-	static T & get(void * storage)
-	{
-		return *static_cast<T *>(storage);
-	}
-
-	static T const & get(void const * storage)
-	{
-		return *static_cast<T const *>(storage);
-	}
-};
-
-template <size_t I>
-struct variant_member<void, I>
+inline void destroy_member(meta::item<void>, void * st) noexcept
 {
-	using type = void;
-	static constexpr size_t index = I;
+}
 
-	static bool construct(void * storage) noexcept
-	{
-		return true;
-	}
-
-	static void destruct(void * storage) noexcept
-	{
-	}
-
-	static bool copy(void * dst, void const * src) noexcept
-	{
-		return true;
-	}
-
-	static bool move(void * dst, void * src) noexcept
-	{
-		return true;
-	}
-
-	static bool equal(void const * lhs, void const * rhs) noexcept
-	{
-		return true;
-	}
-};
-
-template <typename T, size_t I>
-struct variant_member<T &, I>
+template <typename T, typename U>
+auto move_construct_member(meta::item<T>, void * lhs, meta::item<U>, void * rhs) noexcept
+	-> std::enable_if_t<std::is_nothrow_constructible<T, U &&>::value, bool>
 {
-	using type = T &;
-	static constexpr size_t index = I;
+	new(lhs) T(std::move(*static_cast<U *>(rhs)));
+	return true;
+}
 
-	static bool construct(void * storage, T & arg) noexcept
+template <typename T, typename U>
+auto move_construct_member(meta::item<T>, void * lhs, meta::item<U>, void * rhs) noexcept
+	-> std::enable_if_t<!std::is_nothrow_constructible<T, U &&>::value, bool>
+{
+	try
 	{
-		new(storage) T *(std::addressof(arg));
+		new(lhs) T(std::move(*static_cast<U *>(rhs)));
 		return true;
 	}
-
-	static void destruct(void * storage) noexcept
+	catch (...)
 	{
+		new(lhs) std::exception_ptr(std::current_exception());
+		return false;
 	}
+}
 
-	static bool copy(void * dst, void const * src) noexcept
+inline bool move_construct_member(meta::item<void>, void *, meta::item<void>, void *) noexcept
+{
+	return true;
+}
+
+template <typename T, typename U>
+auto copy_construct_member(meta::item<T>, void * lhs, meta::item<U>, void const * rhs) noexcept
+	-> std::enable_if_t<std::is_nothrow_constructible<T, U &>::value, bool>
+{
+	new(lhs) T(*static_cast<U const *>(rhs));
+	return true;
+}
+
+template <typename T, typename U>
+auto copy_construct_member(meta::item<T>, void * lhs, meta::item<U>, void const * rhs) noexcept
+	-> std::enable_if_t<!std::is_nothrow_constructible<T, U &>::value, bool>
+{
+	try
 	{
-		new(dst) T *(*static_cast<T**>(src));
+		new(lhs) T(*static_cast<U const *>(rhs));
 		return true;
 	}
-
-	static bool move(void * dst, void * src) noexcept
+	catch (...)
 	{
-		return copy(dst, src);
+		new(lhs) std::exception_ptr(std::current_exception());
+		return false;
 	}
+}
 
-	static bool equal(void const * lhs, void const * rhs) noexcept
-	{
-		return **static_cast<T const **>(lhs) == **static_cast<T const **>(rhs);
-	}
-};
+inline bool copy_construct_member(meta::item<void>, void *, meta::item<void>, void const *) noexcept
+{
+	return true;
+}
+
+template <typename T, typename U>
+bool equal_member(meta::item<T>, void const * lhs, meta::item<U>, void const * rhs)
+	noexcept(noexcept(std::declval<T>() == std::declval<T>()))
+{
+	return *static_cast<T const *>(lhs) == *static_cast<U const *>(rhs);
+}
+
+inline bool equal_member(meta::item<void>, void const *, meta::item<void>, void const *) noexcept
+{
+	return true;
+}
+
+template <typename T>
+T & get(meta::item<T>, void * storage)
+{
+	return *static_cast<T *>(storage);
+}
+
+template <typename T>
+T const & get(meta::item<T>, void const * storage)
+{
+	return *static_cast<T const *>(storage);
+}
 
 }
 }

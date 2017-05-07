@@ -12,6 +12,7 @@ set(common_srcs
     include/avakar/await/task.h
     include/avakar/meta.h
     src/command_intf.h
+    src/meta_impl.h
     src/result_impl.h
     src/result_traits.h
     src/result.cpp
