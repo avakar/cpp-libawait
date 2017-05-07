@@ -315,6 +315,28 @@ TEST("aw::result moves correctly")
 	chk c == 1;
 }
 
+TEST("aw::result copy-assigned correctly")
+{
+	int c = 0;
+
+	aw::result<mockobject> r1 = &c;
+	aw::result<mockobject> r2;
+	r2 = r1;
+
+	chk c == 2;
+}
+
+TEST("aw::result copy-assigned correctly")
+{
+	int c = 0;
+
+	aw::result<mockobject> r1 = &c;
+	aw::result<mockobject> r2;
+	r2 = std::move(r1);
+
+	chk c == 1;
+}
+
 TEST("aw::result converts correctly")
 {
 	aw::result<mockobject> r1 = 1;
@@ -330,7 +352,7 @@ TEST("aw::result converts by move correctly")
 	aw::result<basic_mockobject<long>> r2 = std::move(r1);
 
 	chk r2.get().value == 3;
-	chk r1.get().value == -1;
+	chk r1.get().value == 3;
 }
 
 TEST("get_if can retrieve T from aw::result<T>")
@@ -433,6 +455,14 @@ TEST("aw::result<T> will convert throws into values on copy")
 {
 	aw::result<mockobject> r1{ aw::in_place_type_t<mockobject>(), mockobject_throw, 1 };
 	aw::result<basic_mockobject<long>> r2(r1);
+
+	chk aw::holds_alternative<std::exception_ptr>(r2);
+}
+
+TEST("aw::result<T> will convert throws into values on move")
+{
+	aw::result<mockobject> r1{ aw::in_place_type_t<mockobject>(), mockobject_throw, 1 };
+	aw::result<basic_mockobject<long>> r2(std::move(r1));
 
 	chk aw::holds_alternative<std::exception_ptr>(r2);
 }

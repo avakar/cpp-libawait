@@ -50,6 +50,9 @@ struct result
 	template <typename U>
 	result(result<U> && o) noexcept;
 
+	result & operator=(result const & o);
+	result & operator=(result && o);
+
 	~result();
 
 	T * operator->();

@@ -85,6 +85,38 @@ result<T>::result(result<U> && o) noexcept
 }
 
 template <typename T>
+result<T> & result<T>::operator=(result<T> const & o)
+{
+	meta::visit<_types>(index_, [this](auto m) {
+		detail::destroy_member(m, &storage_);
+	});
+
+	index_ = o.index_;
+	meta::visit<_types>(index_, [this, &o](auto m) {
+		if (!detail::copy_construct_member(m, &storage_, m, &o.storage_))
+			index_ = meta::index_of<std::exception_ptr, _types>::value;
+	});
+
+	return *this;
+}
+
+template <typename T>
+result<T> & result<T>::operator=(result<T> && o)
+{
+	meta::visit<_types>(index_, [this](auto m) {
+		detail::destroy_member(m, &storage_);
+	});
+
+	index_ = o.index_;
+	meta::visit<_types>(index_, [this, &o](auto m) {
+		if (!detail::move_construct_member(m, &storage_, m, &o.storage_))
+			index_ = meta::index_of<std::exception_ptr, _types>::value;
+	});
+
+	return *this;
+}
+
+template <typename T>
 result<T>::~result()
 {
 	meta::visit<_types>(index_, [this](auto m) {
