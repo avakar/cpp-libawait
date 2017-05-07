@@ -20,7 +20,6 @@ struct task_dismisser
 		destroy_member(m, storage);
 		new(storage) nulltask_t;
 		return r;
-
 	}
 
 	template <typename U>
@@ -60,7 +59,8 @@ template <typename U, typename... Args>
 task<T>::task(in_place_type_t<U>, Args &&... args)
 	: index_(meta::index_of<U, _types>::value)
 {
-	detail::construct_member(meta::item<U>(), &storage_, std::forward<Args>(args)...);
+	if (!detail::construct_member(meta::item<U>(), &storage_, std::forward<Args>(args)...))
+		index_ = meta::index_of<std::exception_ptr, _types>::value;
 }
 
 template <typename T>
@@ -68,7 +68,8 @@ task<T>::task(task && o)
 	: index_(o.index_)
 {
 	meta::visit<_types>(index_, [this, &o](auto m) {
-		detail::move_construct_member(m, &storage_, m, &o.storage_);
+		if (!detail::move_construct_member(m, &storage_, m, &o.storage_))
+			index_ = meta::index_of<std::exception_ptr, _types>::value;
 		detail::destroy_member(m, &o.storage_);
 	});
 
@@ -83,7 +84,8 @@ task<T> & task<T>::operator=(task && o)
 
 	index_ = o.index_;
 	meta::visit<_types>(index_, [this, &o](auto m) {
-		detail::move_construct_member(m, &storage_, m, &o.storage_);
+		if (!detail::move_construct_member(m, &storage_, m, &o.storage_))
+			index_ = meta::index_of<std::exception_ptr, _types>::value;
 		detail::destroy_member(m, &o.storage_);
 	});
 
@@ -96,6 +98,7 @@ template <typename T>
 task<T>::~task()
 {
 	this->clear();
+	reinterpret_cast<nulltask_t *>(&storage_)->~nulltask_t();
 }
 
 template <typename T>

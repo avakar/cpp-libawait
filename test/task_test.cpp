@@ -269,3 +269,46 @@ TEST("aw::task move assignes a command")
 	chk !t;
 	chk u;
 }
+
+TEST("aw::task converts throws into value on construction")
+{
+	aw::task<mockobject> t{ aw::in_place_type_t<mockobject>(), mockobject_throw, 0 };
+	chk t;
+
+	aw::result<mockobject> r = t.dismiss();
+	chk !r;
+	chk_exc(mockobject_error, r.value());
+}
+
+TEST("aw::task converts throws into value on move")
+{
+	using mo = basic_mockobject<int, true>;
+
+	aw::task<mo> t{ aw::in_place_type_t<mo>(), mockobject_throw, 1, true };
+	chk t;
+
+	aw::task<mo> t2 = std::move(t);
+	chk !t;
+	chk t2;
+
+	aw::result<mo> r = t2.dismiss();
+	chk !r;
+	chk_exc(mockobject_error, r.value());
+}
+
+TEST("aw::task converts throws into value on move assignment")
+{
+	using mo = basic_mockobject<int, true>;
+
+	aw::task<mo> t{ aw::in_place_type_t<mo>(), mockobject_throw, 1, true };
+	chk t;
+
+	aw::task<mo> t2;
+	t2 = std::move(t);
+	chk !t;
+	chk t2;
+
+	aw::result<mo> r = t2.dismiss();
+	chk !r;
+	chk_exc(mockobject_error, r.value());
+}
