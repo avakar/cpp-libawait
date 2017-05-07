@@ -33,7 +33,7 @@ struct result
 	template <typename U,
 		typename = std::enable_if_t<
 			!detail::is_result<std::decay_t<U>>::value
-			&& std::is_constructible<meta::choose_overload_t<U, _types>, U>::value
+			&& std::is_constructible<meta::choose_overload_t<U, detail::result_types<T>>, U>::value
 		>>
 	result(U && u) noexcept;
 
