@@ -24,7 +24,7 @@ inline void _mock_object_throw_if_enabled(std::false_type, int & counter)
 template <typename T, bool throw_on_move = false>
 struct basic_mockobject
 {
-	basic_mockobject(mockobject_throw_t, int throw_counter, bool throw_on_move = false)
+	basic_mockobject(mockobject_throw_t, int throw_counter)
 		: throw_counter(throw_counter), value(7), counter_(nullptr)
 	{
 		if (throw_counter == 0)

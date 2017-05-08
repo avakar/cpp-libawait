@@ -284,7 +284,7 @@ TEST("aw::task converts throws into value on move")
 {
 	using mo = basic_mockobject<int, true>;
 
-	aw::task<mo> t{ aw::in_place_type_t<mo>(), mockobject_throw, 1, true };
+	aw::task<mo> t{ aw::in_place_type_t<mo>(), mockobject_throw, 1 };
 	chk t;
 
 	aw::task<mo> t2 = std::move(t);
@@ -300,7 +300,7 @@ TEST("aw::task converts throws into value on move assignment")
 {
 	using mo = basic_mockobject<int, true>;
 
-	aw::task<mo> t{ aw::in_place_type_t<mo>(), mockobject_throw, 1, true };
+	aw::task<mo> t{ aw::in_place_type_t<mo>(), mockobject_throw, 1 };
 	chk t;
 
 	aw::task<mo> t2;
