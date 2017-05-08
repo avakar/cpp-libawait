@@ -14,6 +14,9 @@ template <typename L>
 struct length;
 
 template <typename T, typename L>
+struct contains;
+
+template <typename T, typename L>
 struct index_of;
 
 template <typename L, size_t I>
@@ -49,7 +52,7 @@ struct list_item
 	static const size_t index = I;
 };
 
-template <typename L, typename Visitor, typename... Args>
+template <typename L, typename Skip = meta::list<>, typename Visitor, typename... Args>
 auto visit(size_t index, Visitor && visitor, Args &&... args);
 
 }

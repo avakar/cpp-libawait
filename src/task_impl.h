@@ -9,11 +9,6 @@ namespace detail {
 template <typename T>
 struct task_dismisser
 {
-	result<T> operator()(meta::item<nulltask_t>, void *)
-	{
-		std::abort();
-	}
-
 	result<T> operator()(meta::item<command<T> *> m, void * storage)
 	{
 		result<T> r = get(m, storage)->cancel(nullptr);
@@ -125,7 +120,7 @@ result<T> task<T>::dismiss()
 {
 	assert(!this->empty());
 
-	result<T> r = meta::visit<_types>(index_, detail::task_dismisser<T>(), &storage_);
+	result<T> r = meta::visit<_types, meta::list<nulltask_t>>(index_, detail::task_dismisser<T>(), &storage_);
 	index_ = meta::index_of<nulltask_t, _types>::value;
 	return r;
 }

@@ -48,7 +48,7 @@ struct result
 
 	template <typename U, typename... Args,
 		typename = std::enable_if_t<
-			meta::index_of<U, detail::result_types<T>>::value != meta::npos
+			meta::contains<U, detail::result_types<T>>::value
 			&& (std::is_constructible<U, Args...>::value || (std::is_void<U>::value && sizeof...(Args) == 0))
 		>>
 	result(in_place_type_t<U>, Args &&... args) noexcept;

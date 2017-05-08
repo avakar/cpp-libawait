@@ -1,4 +1,6 @@
 #include <utility>
+#include <iterator>
+#include <assert.h>
 
 namespace avakar {
 namespace meta {
@@ -9,11 +11,21 @@ struct length<list<Tn...>>
 {
 };
 
-constexpr size_t npos = -1;
-
 template <typename T>
-struct index_of<T, list<>>
-	: std::integral_constant<size_t, npos>
+struct contains<T, list<>>
+	: std::false_type
+{
+};
+
+template <typename T, typename... Tn>
+struct contains<T, list<T, Tn...>>
+	: std::true_type
+{
+};
+
+template <typename T, typename T0, typename... Tn>
+struct contains<T, list<T0, Tn...>>
+	: contains<T, list<Tn...>>
 {
 };
 
@@ -109,34 +121,48 @@ struct overload_sandbox<list<void, Tn...>>
 {
 };
 
-template <typename L, typename I, typename Visitor, typename... Args>
+template <bool Skip, typename R, typename T, size_t I, typename Visitor, typename... Args>
+struct _visit_one
+{
+	static R fn(Visitor && visitor, Args &&... args)
+	{
+		return std::forward<Visitor>(visitor)(list_item<T, I>(), std::forward<Args>(args)...);
+	}
+};
+
+template <typename R, typename T, size_t I, typename Visitor, typename... Args>
+struct _visit_one<true, R, T, I, Visitor, Args...>
+{
+	static constexpr std::nullptr_t fn = nullptr;
+};
+
+template <typename Skip, typename L, typename I, typename Visitor, typename... Args>
 struct _visit_impl;
 
-template <typename... Tn, size_t... In, typename Visitor, typename... Args>
-struct _visit_impl<list<Tn...>, std::index_sequence<In...>, Visitor, Args...>
+template <typename Skip, typename... Tn, size_t... In, typename Visitor, typename... Args>
+struct _visit_impl<Skip, list<Tn...>, std::index_sequence<In...>, Visitor, Args...>
 {
 	using return_type = std::common_type_t<
 		decltype(std::declval<Visitor>()(std::declval<list_item<Tn, In>>(), std::declval<Args>()...))...>;
 
-	template <typename T, size_t I>
-	static return_type visit_one(Visitor && visitor, Args &&... args)
-	{
-		return std::forward<Visitor>(visitor)(list_item<T, I>(), std::forward<Args>(args)...);
-	}
-
 	static return_type visit(Visitor && visitor, size_t index, Args &&... args)
 	{
 		using visit_fn = return_type(Visitor && visitor, Args &&... args);
-		static visit_fn * const fns[] = { &visit_one<Tn, In>... };
+		static visit_fn * const fns[] = {
+			_visit_one<contains<Tn, Skip>::value, return_type, Tn, In, Visitor, Args...>::fn... };
 
-		return fns[index](std::forward<Visitor>(visitor), std::forward<Args>(args)...);
+		assert(index < std::size(fns));
+		auto fn = fns[index];
+
+		assert(fn != nullptr);
+		return fn(std::forward<Visitor>(visitor), std::forward<Args>(args)...);
 	}
 };
 
-template <typename L, typename Visitor, typename... Args>
+template <typename L, typename Skip, typename Visitor, typename... Args>
 auto visit(size_t index, Visitor && visitor, Args &&... args)
 {
-	return _visit_impl<L, std::make_index_sequence<length<L>::value>, Visitor, Args...>
+	return _visit_impl<Skip, L, std::make_index_sequence<length<L>::value>, Visitor, Args...>
 		::visit(std::forward<Visitor>(visitor), index, std::forward<Args>(args)...);
 }
 
