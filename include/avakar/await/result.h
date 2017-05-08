@@ -28,6 +28,12 @@ struct in_place_type_t
 template <typename T>
 struct result
 {
+	static_assert(
+		std::is_same<std::decay_t<T>, T>::value,
+		"T shall not be cv-qualified, nor of reference, array or function type");
+	static_assert(!std::is_same<T, std::error_code>::value, "T shall not be std::error_code");
+	static_assert(!std::is_same<T, std::exception_ptr>::value, "T shall not be std::exception_ptr");
+
 	result() noexcept;
 
 	template <typename U,

@@ -17,6 +17,13 @@ constexpr nulltask_t nulltask{};
 template <typename T>
 struct task
 {
+	static_assert(
+		std::is_same<std::decay_t<T>, T>::value,
+		"T shall not be cv-qualified, nor of reference, array or function type");
+	static_assert(!std::is_same<T, nulltask_t>::value, "T shall not be nulltask_t");
+	static_assert(!std::is_same<T, std::error_code>::value, "T shall not be std::error_code");
+	static_assert(!std::is_same<T, std::exception_ptr>::value, "T shall not be std::exception_ptr");
+
 	task();
 
 	template <typename U>
