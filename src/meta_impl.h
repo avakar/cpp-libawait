@@ -1,5 +1,4 @@
 #include <utility>
-#include <iterator>
 #include <assert.h>
 
 namespace avakar {
@@ -151,7 +150,7 @@ struct _visit_impl<Skip, list<Tn...>, std::index_sequence<In...>, Visitor, Args.
 		static visit_fn * const fns[] = {
 			_visit_one<contains<Tn, Skip>::value, return_type, Tn, In, Visitor, Args...>::fn... };
 
-		assert(index < std::size(fns));
+		assert(index < sizeof...(Tn));
 		auto fn = fns[index];
 
 		assert(fn != nullptr);
